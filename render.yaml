@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: roadmap-ogc-api-test
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements-postgres.txt
+    startCommand: cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: APP_ENV
+        value: staging
+      - key: DEMO_MODE
+        value: true
+      - key: COOKIE_SECURE
+        value: true
+      - key: FRONTEND_ORIGINS
+        sync: false
+      - key: SESSION_HOURS
+        value: 8
+      - key: IMPORTS_ENABLED
+        value: false

@@ -1,0 +1,5500 @@
+{
+  "meta": {
+    "axes": {
+      "label": "Ejes temáticos",
+      "module": "projects",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Nombre",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "color",
+          "label": "Color",
+          "type": "text",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": "#18847c"
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "processes": {
+      "label": "Procesos",
+      "module": "projects",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Nombre",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "axis_id",
+          "label": "Eje temático",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "axes",
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "projects": {
+      "label": "Proyectos",
+      "module": "projects",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "description",
+          "label": "Descripción",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": null,
+          "options": [],
+          "default": ""
+        },
+        {
+          "key": "axis_id",
+          "label": "Eje temático",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "axes",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "process_id",
+          "label": "Proceso",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "processes",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "responsible_id",
+          "label": "Responsable OGC",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "start_date",
+          "label": "Inicio",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "due_date",
+          "label": "Plazo",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "status",
+          "label": "Estado",
+          "type": "text",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [
+            "planificado",
+            "en_progreso",
+            "en_pausa",
+            "finalizado"
+          ],
+          "default": "en_progreso"
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "milestones": {
+      "label": "Hitos",
+      "module": "projects",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "project_id",
+          "label": "Proyecto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "projects",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "due_date",
+          "label": "Plazo",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "status",
+          "label": "Estado",
+          "type": "text",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [
+            "pendiente",
+            "cumplido"
+          ],
+          "default": "pendiente"
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "tasks": {
+      "label": "Tareas",
+      "module": "tasks",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "description",
+          "label": "Descripción",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": null,
+          "options": [],
+          "default": ""
+        },
+        {
+          "key": "project_id",
+          "label": "Proyecto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "projects",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "parent_id",
+          "label": "Tarea principal",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "tasks",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "responsible_id",
+          "label": "Responsable OGC",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "start_date",
+          "label": "Inicio",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "due_date",
+          "label": "Plazo",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "priority",
+          "label": "Prioridad",
+          "type": "text",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [
+            "baja",
+            "media",
+            "alta",
+            "urgente"
+          ],
+          "default": "media"
+        },
+        {
+          "key": "recurrence",
+          "label": "Recurrencia",
+          "type": "text",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [
+            "ninguna",
+            "semanal",
+            "mensual"
+          ],
+          "default": "ninguna"
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "task-assignments": {
+      "label": "Asignaciones",
+      "module": "tasks",
+      "fields": [
+        {
+          "key": "task_id",
+          "label": "Tarea",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "tasks",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "user_id",
+          "label": "Integrante",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "task-dependencies": {
+      "label": "Dependencias",
+      "module": "tasks",
+      "fields": [
+        {
+          "key": "task_id",
+          "label": "Tarea",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "tasks",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "depends_on_id",
+          "label": "Depende de",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "tasks",
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "task-updates": {
+      "label": "Avances y comentarios",
+      "module": "tasks",
+      "fields": [
+        {
+          "key": "task_id",
+          "label": "Tarea",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "tasks",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "author_id",
+          "label": "author_id",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "progress",
+          "label": "Avance",
+          "type": "number",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "comment",
+          "label": "comment",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "kind",
+          "label": "kind",
+          "type": "text",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": "avance"
+        }
+      ],
+      "readonly": true,
+      "can_write": false,
+      "can_validate": true
+    },
+    "closure-approvals": {
+      "label": "Cierres autorizados",
+      "module": "tasks",
+      "fields": [
+        {
+          "key": "task_id",
+          "label": "Tarea",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "tasks",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "approver_id",
+          "label": "approver_id",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "evidence_version_id",
+          "label": "evidence_version_id",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "evidence-versions",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "justification",
+          "label": "justification",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": true,
+      "can_write": false,
+      "can_validate": true
+    },
+    "document-types": {
+      "label": "Tipos documentales",
+      "module": "documents",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Nombre",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "documents": {
+      "label": "Documentos",
+      "module": "documents",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "number",
+          "label": "Número",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "year",
+          "label": "Año",
+          "type": "number",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "document_type_id",
+          "label": "Tipo documental",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "document-types",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "section",
+          "label": "Sección",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [
+            "emitidos",
+            "recibidos",
+            "normativos",
+            "archivo"
+          ],
+          "default": null
+        },
+        {
+          "key": "date",
+          "label": "Fecha",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "sender",
+          "label": "Emisor",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "recipient",
+          "label": "Destinatario",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "responsible_id",
+          "label": "Responsable OGC",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "project_id",
+          "label": "Proyecto",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "projects",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "reference_id",
+          "label": "Documento de referencia",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "documents",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "due_date",
+          "label": "Plazo",
+          "type": "date",
+          "required": false,
+          "nullable": true,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "document-versions": {
+      "label": "Versiones documentales",
+      "module": "documents",
+      "fields": [
+        {
+          "key": "document_id",
+          "label": "Documento",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "documents",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "version",
+          "label": "Versión",
+          "type": "number",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "url",
+          "label": "Enlace autorizado",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "access_confirmed",
+          "label": "Permisos de acceso confirmados",
+          "type": "boolean",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": false
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "task-documents": {
+      "label": "Documentos de tareas",
+      "module": "documents",
+      "fields": [
+        {
+          "key": "task_id",
+          "label": "Tarea",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "tasks",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "document_id",
+          "label": "Documento",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "documents",
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "cases": {
+      "label": "Expedientes",
+      "module": "cases",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "number",
+          "label": "Número",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "document_id",
+          "label": "Documento",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "documents",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "responsible_id",
+          "label": "Responsable OGC",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "current_department",
+          "label": "Dependencia externa actual",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "due_date",
+          "label": "Plazo",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "case-events": {
+      "label": "Historial de trámites",
+      "module": "cases",
+      "fields": [
+        {
+          "key": "case_id",
+          "label": "case_id",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "cases",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "actor_id",
+          "label": "actor_id",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "status",
+          "label": "Estado",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "department",
+          "label": "Dependencia",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "note",
+          "label": "note",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "resolution_id",
+          "label": "resolution_id",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "documents",
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": true,
+      "can_write": false,
+      "can_validate": true
+    },
+    "meetings": {
+      "label": "Reuniones",
+      "module": "meetings",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "date",
+          "label": "Fecha",
+          "type": "datetime",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "agenda",
+          "label": "Agenda",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "location",
+          "label": "Lugar",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "responsible_id",
+          "label": "Responsable OGC",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "project_id",
+          "label": "Proyecto",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "projects",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "minutes_document_id",
+          "label": "Acta",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "documents",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "status",
+          "label": "Estado",
+          "type": "text",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [
+            "programada",
+            "realizada",
+            "cancelada"
+          ],
+          "default": "programada"
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "attendees": {
+      "label": "Asistentes",
+      "module": "meetings",
+      "fields": [
+        {
+          "key": "meeting_id",
+          "label": "Reunión",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "meetings",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "user_id",
+          "label": "Integrante",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "attended",
+          "label": "Asistió",
+          "type": "boolean",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": false
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "agreements": {
+      "label": "Acuerdos",
+      "module": "meetings",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "meeting_id",
+          "label": "Reunión",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "meetings",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "project_id",
+          "label": "Proyecto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "projects",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "responsible_id",
+          "label": "Responsable OGC",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "due_date",
+          "label": "Plazo",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "evidence": {
+      "label": "Evidencias",
+      "module": "evidence",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "category",
+          "label": "Categoría",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "date",
+          "label": "Fecha",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "requested_department",
+          "label": "Área solicitada",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "due_date",
+          "label": "Plazo",
+          "type": "date",
+          "required": false,
+          "nullable": true,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "request_status",
+          "label": "Estado de solicitud",
+          "type": "text",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [
+            "solicitada",
+            "recibida",
+            "observada"
+          ],
+          "default": "recibida"
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "evidence-versions": {
+      "label": "Versiones de evidencia",
+      "module": "evidence",
+      "fields": [
+        {
+          "key": "evidence_id",
+          "label": "Evidencia",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "evidence",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "version",
+          "label": "Versión",
+          "type": "number",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "url",
+          "label": "Enlace autorizado",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "access_confirmed",
+          "label": "Permisos de acceso confirmados",
+          "type": "boolean",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": false
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "evidence-validations": {
+      "label": "Validaciones",
+      "module": "evidence",
+      "fields": [
+        {
+          "key": "evidence_version_id",
+          "label": "evidence_version_id",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "evidence-versions",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "validator_id",
+          "label": "validator_id",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "status",
+          "label": "Estado",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "note",
+          "label": "note",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": true,
+      "can_write": false,
+      "can_validate": true
+    },
+    "evidence-links": {
+      "label": "Vínculos de evidencia",
+      "module": "evidence",
+      "fields": [
+        {
+          "key": "evidence_id",
+          "label": "Evidencia",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "evidence",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "task_id",
+          "label": "Tarea",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "tasks",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "document_id",
+          "label": "Documento",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "documents",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "agreement_id",
+          "label": "Acuerdo",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "agreements",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "meeting_id",
+          "label": "Reunión",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "meetings",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "project_id",
+          "label": "Proyecto",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "projects",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "indicator_id",
+          "label": "Indicador",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "indicators",
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "service-orders": {
+      "label": "Órdenes de servicio",
+      "module": "services",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "number",
+          "label": "Número",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "siaf",
+          "label": "SIAF (si aplica)",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "provider",
+          "label": "Prestador",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "responsible_id",
+          "label": "Responsable OGC",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "project_id",
+          "label": "Proyecto",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "projects",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "start_date",
+          "label": "Inicio",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "due_date",
+          "label": "Plazo",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "status",
+          "label": "Estado",
+          "type": "text",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [
+            "vigente",
+            "finalizada",
+            "cancelada"
+          ],
+          "default": "vigente"
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "deliverables": {
+      "label": "Entregables",
+      "module": "services",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "service_order_id",
+          "label": "Orden de servicio",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "service-orders",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "responsible_id",
+          "label": "Responsable OGC",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "due_date",
+          "label": "Plazo",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "presentation_document_id",
+          "label": "Documento de presentación",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "documents",
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "deliverable-reviews": {
+      "label": "Revisiones y conformidades",
+      "module": "services",
+      "fields": [
+        {
+          "key": "deliverable_id",
+          "label": "deliverable_id",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "deliverables",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "reviewer_id",
+          "label": "reviewer_id",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "status",
+          "label": "Estado",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "note",
+          "label": "note",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": true,
+      "can_write": false,
+      "can_validate": true
+    },
+    "quality-models": {
+      "label": "Modelos de calidad",
+      "module": "indicators",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "version",
+          "label": "Versión",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "source_url",
+          "label": "Fuente de referencia",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "criteria": {
+      "label": "Criterios",
+      "module": "indicators",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "code",
+          "label": "Código",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "quality_model_id",
+          "label": "Modelo de calidad",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "quality-models",
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "periods": {
+      "label": "Periodos",
+      "module": "indicators",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Nombre",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "start_date",
+          "label": "Inicio",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "end_date",
+          "label": "Fin",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "indicators": {
+      "label": "Indicadores",
+      "module": "indicators",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "criterion_id",
+          "label": "Criterio",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "criteria",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "responsible_id",
+          "label": "Responsable OGC",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "project_id",
+          "label": "Proyecto",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "projects",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "unit",
+          "label": "Unidad",
+          "type": "text",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": "%"
+        },
+        {
+          "key": "description",
+          "label": "Descripción",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": null,
+          "options": [],
+          "default": ""
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "indicator-results": {
+      "label": "Metas y resultados",
+      "module": "indicators",
+      "fields": [
+        {
+          "key": "indicator_id",
+          "label": "Indicador",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "indicators",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "period_id",
+          "label": "Periodo",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "periods",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "target",
+          "label": "Meta",
+          "type": "number",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "result",
+          "label": "Resultado",
+          "type": "number",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "improvement-plans": {
+      "label": "Planes de mejora",
+      "module": "indicators",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Nombre / asunto",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "indicator_id",
+          "label": "Indicador",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "indicators",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "task_id",
+          "label": "Tarea",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "tasks",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "responsible_id",
+          "label": "Responsable OGC",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "due_date",
+          "label": "Plazo",
+          "type": "date",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "status",
+          "label": "Estado",
+          "type": "text",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [
+            "pendiente",
+            "en_progreso",
+            "cumplido"
+          ],
+          "default": "pendiente"
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "users": {
+      "label": "Usuarios",
+      "module": "admin",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Nombre",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "email",
+          "label": "Correo",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "active",
+          "label": "Activo",
+          "type": "boolean",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": true
+        },
+        {
+          "key": "department",
+          "label": "Dependencia",
+          "type": "text",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": "OGC"
+        },
+        {
+          "key": "password",
+          "label": "Contraseña inicial / nueva",
+          "type": "password",
+          "required": false
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "roles": {
+      "label": "Roles",
+      "module": "admin",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Nombre",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "permissions": {
+      "label": "Permisos",
+      "module": "admin",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Nombre",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": true,
+      "can_write": false,
+      "can_validate": true
+    },
+    "user-roles": {
+      "label": "Roles de usuarios",
+      "module": "admin",
+      "fields": [
+        {
+          "key": "user_id",
+          "label": "Integrante",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "role_id",
+          "label": "Rol",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "roles",
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "role-permissions": {
+      "label": "Permisos de roles",
+      "module": "admin",
+      "fields": [
+        {
+          "key": "role_id",
+          "label": "Rol",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "roles",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "permission_id",
+          "label": "Permiso",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "permissions",
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": false,
+      "can_write": true,
+      "can_validate": true
+    },
+    "audit": {
+      "label": "Bitácora de auditoría",
+      "module": "audit",
+      "fields": [
+        {
+          "key": "actor_id",
+          "label": "actor_id",
+          "type": "text",
+          "required": false,
+          "nullable": true,
+          "lookup": "users",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "entity",
+          "label": "entity",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "record_id",
+          "label": "record_id",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "action",
+          "label": "action",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "before",
+          "label": "before",
+          "type": "json",
+          "required": false,
+          "nullable": true,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "after",
+          "label": "after",
+          "type": "json",
+          "required": false,
+          "nullable": true,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": true,
+      "can_write": false,
+      "can_validate": true
+    },
+    "import-batches": {
+      "label": "Importaciones",
+      "module": "admin",
+      "fields": [
+        {
+          "key": "filename",
+          "label": "filename",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "sha256",
+          "label": "sha256",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "sheet",
+          "label": "sheet",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "backup_path",
+          "label": "backup_path",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "entity",
+          "label": "entity",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "status",
+          "label": "Estado",
+          "type": "text",
+          "required": false,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": "preview"
+        },
+        {
+          "key": "mapping",
+          "label": "mapping",
+          "type": "json",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "preview",
+          "label": "preview",
+          "type": "json",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": true,
+      "can_write": false,
+      "can_validate": true
+    },
+    "import-sources": {
+      "label": "Origen de registros",
+      "module": "admin",
+      "fields": [
+        {
+          "key": "batch_id",
+          "label": "batch_id",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": "import-batches",
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "sheet",
+          "label": "sheet",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "row_number",
+          "label": "row_number",
+          "type": "number",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "entity",
+          "label": "entity",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        },
+        {
+          "key": "record_id",
+          "label": "record_id",
+          "type": "text",
+          "required": true,
+          "nullable": false,
+          "lookup": null,
+          "options": [],
+          "default": null
+        }
+      ],
+      "readonly": true,
+      "can_write": false,
+      "can_validate": true
+    }
+  },
+  "lookups": {
+    "axes": [
+      {
+        "value": "ba7da3ca-a25a-469d-9d5d-ff93732151e5",
+        "label": "Gestión institucional · demo"
+      },
+      {
+        "value": "0a00196f-eab8-491f-9177-29d93d650c32",
+        "label": "Acreditación · demo"
+      },
+      {
+        "value": "77676c99-d15d-4392-b662-c5706c0f4333",
+        "label": "Gestión de la calidad · demo"
+      }
+    ],
+    "processes": [
+      {
+        "value": "09a11e2e-d098-4e64-abf6-25c63320f8b6",
+        "label": "Gestión documental · demo"
+      },
+      {
+        "value": "d4e918b0-ae51-4cd7-94e9-cb998d083755",
+        "label": "Autoevaluación · demo"
+      },
+      {
+        "value": "629675d9-dece-46e5-a643-198171a0d50e",
+        "label": "Mejora continua · demo"
+      }
+    ],
+    "projects": [
+      {
+        "value": "8c53dae4-f685-4339-b43a-3c234212c34f",
+        "label": "Organización del archivo digital · demo"
+      },
+      {
+        "value": "b2ac926f-0d12-46d6-b8ad-fc7201f27e83",
+        "label": "Ruta de autoevaluación · demo"
+      },
+      {
+        "value": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "label": "Plan de mejora institucional · demo"
+      }
+    ],
+    "milestones": [
+      {
+        "value": "612e5362-3785-443a-a2b4-e0668c021cbf",
+        "label": "Revisión de resultados · demo"
+      },
+      {
+        "value": "0ae85cca-f242-4570-bbe4-57cb553a7bcc",
+        "label": "Revisión de resultados · demo"
+      },
+      {
+        "value": "d60b7b67-daf8-482f-8140-53e136ed02e5",
+        "label": "Revisión de resultados · demo"
+      }
+    ],
+    "tasks": [
+      {
+        "value": "f54ccc39-c0d3-4008-bd2e-481eceec0c79",
+        "label": "Ordenar evidencias del periodo · demo"
+      },
+      {
+        "value": "57b6e58c-c641-4454-a5da-989dd3e32123",
+        "label": "Revisar avances semanales · demo"
+      },
+      {
+        "value": "bc44395e-415f-4fee-9c90-963baaeb87dd",
+        "label": "Coordinar mesa de trabajo · demo"
+      },
+      {
+        "value": "c7c88298-6120-4153-98e8-d661ddb156a0",
+        "label": "Actualizar inventario de documentos · demo"
+      },
+      {
+        "value": "52856ab5-341d-4f91-ae5c-217859718336",
+        "label": "Preparar informe de seguimiento · demo"
+      },
+      {
+        "value": "f3d466f9-a0a1-4d8a-96e1-1f87cabd7b82",
+        "label": "Solicitar medios de verificación · demo"
+      },
+      {
+        "value": "3297251b-5ee4-4ec3-b91d-9ee1bfc28b7a",
+        "label": "Revisar la matriz de compromisos · demo"
+      },
+      {
+        "value": "ed98c786-ccb9-46b0-80ad-603ea77697b6",
+        "label": "Consolidar el diagnóstico de procesos · demo"
+      }
+    ],
+    "task-assignments": [
+      {
+        "value": "be488df9-ea40-4bd1-a08c-2534d6857134",
+        "label": "be488df9-ea40-4bd1-a08c-2534d6857134"
+      },
+      {
+        "value": "91e2cd13-85cb-4c22-8528-01f59fdee4c1",
+        "label": "91e2cd13-85cb-4c22-8528-01f59fdee4c1"
+      },
+      {
+        "value": "c2627a08-6aa3-43af-a9f3-84616e40ba6b",
+        "label": "c2627a08-6aa3-43af-a9f3-84616e40ba6b"
+      },
+      {
+        "value": "65662901-6b3d-4368-a54b-e4e56d340509",
+        "label": "65662901-6b3d-4368-a54b-e4e56d340509"
+      },
+      {
+        "value": "dcadc44b-53d2-47b1-b22e-d0c08052021d",
+        "label": "dcadc44b-53d2-47b1-b22e-d0c08052021d"
+      },
+      {
+        "value": "4c4f3048-efe8-4f74-a430-7c1780c4b402",
+        "label": "4c4f3048-efe8-4f74-a430-7c1780c4b402"
+      },
+      {
+        "value": "5f924e75-4f1a-4924-8836-4e5a404d9aa2",
+        "label": "5f924e75-4f1a-4924-8836-4e5a404d9aa2"
+      },
+      {
+        "value": "a2b189ac-d8a6-451d-b7a5-17d6ea74884e",
+        "label": "a2b189ac-d8a6-451d-b7a5-17d6ea74884e"
+      }
+    ],
+    "task-dependencies": [],
+    "document-types": [
+      {
+        "value": "bacbddeb-4cfc-409c-99d5-341c9ef5ad48",
+        "label": "Otro"
+      },
+      {
+        "value": "9d2c62b4-8575-4129-aa89-f2bf94d361f2",
+        "label": "Manual"
+      },
+      {
+        "value": "9eb55b17-2bb7-45a7-98bd-2b0047c813a2",
+        "label": "Reglamento"
+      },
+      {
+        "value": "5bb852a9-840b-4f87-bee3-e5b6502a49df",
+        "label": "Plan"
+      },
+      {
+        "value": "5f10969d-0a0d-4c91-8f9f-ef495f02a119",
+        "label": "Directiva"
+      },
+      {
+        "value": "0789140f-7203-473e-ad35-722bb13f442b",
+        "label": "Documento recibido"
+      },
+      {
+        "value": "1641fd3e-3444-4a3d-96b7-9459ad27dbbb",
+        "label": "Oficio"
+      },
+      {
+        "value": "0bcef350-a661-4988-892e-de282799fffe",
+        "label": "Memorando"
+      },
+      {
+        "value": "d719c189-14d8-4e31-a934-fb68db22d5b5",
+        "label": "Informe técnico"
+      },
+      {
+        "value": "3d357aa7-8615-4251-9dc2-09d50f017003",
+        "label": "Informe"
+      },
+      {
+        "value": "2b807518-59a6-40f1-af32-3cea81939569",
+        "label": "Carta múltiple"
+      },
+      {
+        "value": "9458bf82-bc7c-4d3b-bd5d-80b624b0a49b",
+        "label": "Carta"
+      }
+    ],
+    "documents": [
+      {
+        "value": "2c22cd9d-67ff-4c44-b30e-4389e074985c",
+        "label": "Carta de coordinación · demo"
+      },
+      {
+        "value": "ddaed134-3e87-4977-9f7a-e6e6e39c9331",
+        "label": "Plan de trabajo · demo"
+      },
+      {
+        "value": "8e1993cc-ebaa-4bd0-bf8a-557a5642b2ee",
+        "label": "Informe de avance · demo"
+      },
+      {
+        "value": "5374476a-4436-43aa-be1c-ac355b542811",
+        "label": "Solicitud de revisión · demo"
+      }
+    ],
+    "document-versions": [],
+    "task-documents": [
+      {
+        "value": "05ece670-9dc4-44d8-bddf-5b3a05f30838",
+        "label": "05ece670-9dc4-44d8-bddf-5b3a05f30838"
+      }
+    ],
+    "cases": [
+      {
+        "value": "a0eb7532-3f93-49e4-995e-7f59091f72fa",
+        "label": "Revisión del informe · demo"
+      }
+    ],
+    "meetings": [
+      {
+        "value": "eaa62423-040a-4380-b71c-2e765895d47b",
+        "label": "Mesa de seguimiento · demo"
+      }
+    ],
+    "attendees": [
+      {
+        "value": "f7628b31-c610-4751-a95d-22260567b314",
+        "label": "f7628b31-c610-4751-a95d-22260567b314"
+      },
+      {
+        "value": "f5ad1484-0506-42f2-b3a0-d226070a9bf9",
+        "label": "f5ad1484-0506-42f2-b3a0-d226070a9bf9"
+      },
+      {
+        "value": "fef3b4b4-eb8f-4e87-94c3-6c11f31ec223",
+        "label": "fef3b4b4-eb8f-4e87-94c3-6c11f31ec223"
+      }
+    ],
+    "agreements": [
+      {
+        "value": "0e6b9c3d-4907-4f19-9c62-a90b601d4957",
+        "label": "Consolidar compromisos de la mesa · demo"
+      }
+    ],
+    "evidence": [
+      {
+        "value": "2129e990-e547-447a-b91b-b1000518d210",
+        "label": "Matriz de seguimiento · demo"
+      }
+    ],
+    "evidence-versions": [],
+    "evidence-links": [],
+    "service-orders": [
+      {
+        "value": "d030973e-3665-4cd8-9bc4-c4bcbff1f34b",
+        "label": "Apoyo de seguimiento · demo"
+      }
+    ],
+    "deliverables": [
+      {
+        "value": "336b1e80-6bd1-4541-bb1d-9c0681d39116",
+        "label": "Primer informe de actividades · demo"
+      }
+    ],
+    "quality-models": [
+      {
+        "value": "a8d8a609-6c5f-40b1-90b3-38badd619d50",
+        "label": "Modelo ficticio de demostración"
+      }
+    ],
+    "criteria": [
+      {
+        "value": "cb9283e4-c3c8-4fff-bd11-752540d3d4d0",
+        "label": "Criterio ficticio de seguimiento"
+      }
+    ],
+    "periods": [
+      {
+        "value": "3a836f62-d5aa-4a2b-9619-009f3a57c08c",
+        "label": "2026 · demo"
+      }
+    ],
+    "indicators": [
+      {
+        "value": "7a0de841-cff8-4c71-ad5f-17b69caec641",
+        "label": "Compromisos con seguimiento · demo"
+      }
+    ],
+    "indicator-results": [
+      {
+        "value": "b51b369d-74a8-4275-80a0-2151ab367849",
+        "label": "b51b369d-74a8-4275-80a0-2151ab367849"
+      }
+    ],
+    "improvement-plans": [
+      {
+        "value": "5cc4f2eb-993a-453e-9d92-a69a5134a2b5",
+        "label": "Completar medios de verificación · demo"
+      }
+    ],
+    "users": [
+      {
+        "value": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "label": "Administración demo"
+      },
+      {
+        "value": "3fb79455-50ee-44da-8c1b-03879eb92798",
+        "label": "Auditoría demo"
+      },
+      {
+        "value": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "label": "Elena · demo"
+      },
+      {
+        "value": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "label": "Lucía · demo"
+      },
+      {
+        "value": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "label": "Mateo · demo"
+      }
+    ],
+    "roles": [
+      {
+        "value": "e4496d64-a550-44e7-a0e3-89fab7411fa4",
+        "label": "consulta_auditoria"
+      },
+      {
+        "value": "4833e510-6ef9-4036-85f7-da3f7c6a38fa",
+        "label": "integrante"
+      },
+      {
+        "value": "c66e6771-6683-4c2b-b2d8-9fa6127321da",
+        "label": "coordinador"
+      },
+      {
+        "value": "1678ebb6-a7ee-479b-b212-5df07f8d1cc0",
+        "label": "jefatura"
+      },
+      {
+        "value": "3f9c3ced-7eb9-4326-b467-11ad99bca54e",
+        "label": "administrador"
+      }
+    ],
+    "user-roles": [
+      {
+        "value": "c41a4ef0-587c-4c9e-9d62-946895d67f7f",
+        "label": "c41a4ef0-587c-4c9e-9d62-946895d67f7f"
+      },
+      {
+        "value": "5caaba60-2a94-45f8-a33f-bd8c7c871561",
+        "label": "5caaba60-2a94-45f8-a33f-bd8c7c871561"
+      },
+      {
+        "value": "7c963eef-bf95-474a-b456-70a0edb38aa6",
+        "label": "7c963eef-bf95-474a-b456-70a0edb38aa6"
+      },
+      {
+        "value": "97488ee4-d5e6-4bd2-89ec-6fbe2f000d41",
+        "label": "97488ee4-d5e6-4bd2-89ec-6fbe2f000d41"
+      },
+      {
+        "value": "a4c73ddb-8ddd-4110-a616-04d1411ef6f7",
+        "label": "a4c73ddb-8ddd-4110-a616-04d1411ef6f7"
+      }
+    ],
+    "role-permissions": [
+      {
+        "value": "d4ecaa58-b563-479c-ab89-1758036ac649",
+        "label": "d4ecaa58-b563-479c-ab89-1758036ac649"
+      },
+      {
+        "value": "b9274ef6-7049-4d29-b945-c29e6aa6effc",
+        "label": "b9274ef6-7049-4d29-b945-c29e6aa6effc"
+      },
+      {
+        "value": "36421e57-e5c7-4a6a-b8bd-f5bea0d8ddd9",
+        "label": "36421e57-e5c7-4a6a-b8bd-f5bea0d8ddd9"
+      },
+      {
+        "value": "aa8508e7-f2bb-4720-ab44-be4e88aff7fe",
+        "label": "aa8508e7-f2bb-4720-ab44-be4e88aff7fe"
+      },
+      {
+        "value": "fa373623-b831-4eb9-9b54-99ea8ac376fb",
+        "label": "fa373623-b831-4eb9-9b54-99ea8ac376fb"
+      },
+      {
+        "value": "8564c508-e74a-4f6e-b7cf-fd03d1c19c64",
+        "label": "8564c508-e74a-4f6e-b7cf-fd03d1c19c64"
+      },
+      {
+        "value": "0e008508-e976-41f2-bd22-6f28928ef200",
+        "label": "0e008508-e976-41f2-bd22-6f28928ef200"
+      },
+      {
+        "value": "b87e27bb-e22c-4d74-8eb7-d5ebd9c88952",
+        "label": "b87e27bb-e22c-4d74-8eb7-d5ebd9c88952"
+      },
+      {
+        "value": "ed94a1f9-650e-4c7e-bf59-ff892cc59568",
+        "label": "ed94a1f9-650e-4c7e-bf59-ff892cc59568"
+      },
+      {
+        "value": "a7296c8c-7695-4b0d-a398-070e744b6aa4",
+        "label": "a7296c8c-7695-4b0d-a398-070e744b6aa4"
+      },
+      {
+        "value": "7e14e809-ff03-465e-94a3-5788fa40f85f",
+        "label": "7e14e809-ff03-465e-94a3-5788fa40f85f"
+      },
+      {
+        "value": "e99d79e1-bd18-4ea8-8df4-9536d063ade1",
+        "label": "e99d79e1-bd18-4ea8-8df4-9536d063ade1"
+      },
+      {
+        "value": "a1395cfd-c54b-421f-95f2-442463a7685d",
+        "label": "a1395cfd-c54b-421f-95f2-442463a7685d"
+      },
+      {
+        "value": "67c9609c-43b3-48de-8933-ae123fa49d7c",
+        "label": "67c9609c-43b3-48de-8933-ae123fa49d7c"
+      },
+      {
+        "value": "7184c7b3-a6be-452c-a02e-0665efe04337",
+        "label": "7184c7b3-a6be-452c-a02e-0665efe04337"
+      },
+      {
+        "value": "c1eb4186-1a4a-4701-bba9-ebe18fa34384",
+        "label": "c1eb4186-1a4a-4701-bba9-ebe18fa34384"
+      },
+      {
+        "value": "8598d62a-67d6-47a1-a546-bd46eb9e45b8",
+        "label": "8598d62a-67d6-47a1-a546-bd46eb9e45b8"
+      },
+      {
+        "value": "8327145c-9e6b-4813-a9af-b190dbeb7896",
+        "label": "8327145c-9e6b-4813-a9af-b190dbeb7896"
+      },
+      {
+        "value": "bae6cf63-4e34-4a84-a4ee-5d5e6ab5e821",
+        "label": "bae6cf63-4e34-4a84-a4ee-5d5e6ab5e821"
+      },
+      {
+        "value": "dc12e500-fa6b-4971-b1ba-7f048e57b3f1",
+        "label": "dc12e500-fa6b-4971-b1ba-7f048e57b3f1"
+      },
+      {
+        "value": "627784f1-ebbe-4307-8aab-b46d8b001fd9",
+        "label": "627784f1-ebbe-4307-8aab-b46d8b001fd9"
+      },
+      {
+        "value": "68985c5c-f6d6-42b7-9b90-dd90343dbdcf",
+        "label": "68985c5c-f6d6-42b7-9b90-dd90343dbdcf"
+      },
+      {
+        "value": "6e23044c-35c8-449c-8b20-14b22463b279",
+        "label": "6e23044c-35c8-449c-8b20-14b22463b279"
+      },
+      {
+        "value": "7fcd9c05-f2c1-4eff-a0ae-5c6b9452e545",
+        "label": "7fcd9c05-f2c1-4eff-a0ae-5c6b9452e545"
+      },
+      {
+        "value": "b58d6c3e-9850-4c8d-82e9-44c636f185f2",
+        "label": "b58d6c3e-9850-4c8d-82e9-44c636f185f2"
+      },
+      {
+        "value": "ec9b4f03-4a16-46c2-b704-f69389173f65",
+        "label": "ec9b4f03-4a16-46c2-b704-f69389173f65"
+      },
+      {
+        "value": "3c22b225-62fd-4a23-8bc0-d8331b497860",
+        "label": "3c22b225-62fd-4a23-8bc0-d8331b497860"
+      },
+      {
+        "value": "a1c976de-a8a8-4cb2-8510-fa1510663d48",
+        "label": "a1c976de-a8a8-4cb2-8510-fa1510663d48"
+      },
+      {
+        "value": "04157bf6-5a53-4b45-88fb-fea480c6aad1",
+        "label": "04157bf6-5a53-4b45-88fb-fea480c6aad1"
+      },
+      {
+        "value": "4f9dd7d4-751d-443a-954f-1c5f0b0dc787",
+        "label": "4f9dd7d4-751d-443a-954f-1c5f0b0dc787"
+      },
+      {
+        "value": "5e73eafd-9cc0-4aa4-8678-a950184685fc",
+        "label": "5e73eafd-9cc0-4aa4-8678-a950184685fc"
+      },
+      {
+        "value": "0fdb67a2-5c98-457f-b3d8-233acba8e724",
+        "label": "0fdb67a2-5c98-457f-b3d8-233acba8e724"
+      },
+      {
+        "value": "32d10c9a-cc2c-4029-9536-93c507044ae3",
+        "label": "32d10c9a-cc2c-4029-9536-93c507044ae3"
+      },
+      {
+        "value": "7a54a8db-a37f-4f3c-89b4-ed15b04974d5",
+        "label": "7a54a8db-a37f-4f3c-89b4-ed15b04974d5"
+      },
+      {
+        "value": "1f420dd7-8258-4783-bae7-7ee9f9e1f5e3",
+        "label": "1f420dd7-8258-4783-bae7-7ee9f9e1f5e3"
+      },
+      {
+        "value": "eab8adc9-7cf2-4429-828a-f74b2f35a4b3",
+        "label": "eab8adc9-7cf2-4429-828a-f74b2f35a4b3"
+      },
+      {
+        "value": "3af421bc-2cd6-42c4-9bc1-dd9a7abed734",
+        "label": "3af421bc-2cd6-42c4-9bc1-dd9a7abed734"
+      },
+      {
+        "value": "69b6d4c4-f6ff-4615-b053-d60f940d5895",
+        "label": "69b6d4c4-f6ff-4615-b053-d60f940d5895"
+      },
+      {
+        "value": "34388feb-7cdc-4828-9178-e262b537ba8b",
+        "label": "34388feb-7cdc-4828-9178-e262b537ba8b"
+      },
+      {
+        "value": "68dab75c-cbbc-4794-8a21-360c9d29b298",
+        "label": "68dab75c-cbbc-4794-8a21-360c9d29b298"
+      },
+      {
+        "value": "b11a409b-b42c-434c-85af-04657a617065",
+        "label": "b11a409b-b42c-434c-85af-04657a617065"
+      },
+      {
+        "value": "0f0926dd-0748-47aa-a90d-c72671b12657",
+        "label": "0f0926dd-0748-47aa-a90d-c72671b12657"
+      },
+      {
+        "value": "c50bcb49-cf41-4892-8854-47b5808b45f6",
+        "label": "c50bcb49-cf41-4892-8854-47b5808b45f6"
+      },
+      {
+        "value": "db621b9d-ec85-4a5e-b48b-f33a6ce1d70a",
+        "label": "db621b9d-ec85-4a5e-b48b-f33a6ce1d70a"
+      },
+      {
+        "value": "f9b0b8a6-f4f9-4e38-b12d-b0b26b739040",
+        "label": "f9b0b8a6-f4f9-4e38-b12d-b0b26b739040"
+      },
+      {
+        "value": "ced8a411-358d-4195-a9d4-0173ed71eedf",
+        "label": "ced8a411-358d-4195-a9d4-0173ed71eedf"
+      },
+      {
+        "value": "9f4809a7-bcb2-4b21-b709-34059e736c64",
+        "label": "9f4809a7-bcb2-4b21-b709-34059e736c64"
+      },
+      {
+        "value": "37cc61d6-8e30-474c-b698-82040c73c989",
+        "label": "37cc61d6-8e30-474c-b698-82040c73c989"
+      },
+      {
+        "value": "7b4d5a1b-feee-4ff7-b50a-f740f195a87a",
+        "label": "7b4d5a1b-feee-4ff7-b50a-f740f195a87a"
+      },
+      {
+        "value": "5c7c4cf3-4e7a-4f83-92ef-f9e059314d2d",
+        "label": "5c7c4cf3-4e7a-4f83-92ef-f9e059314d2d"
+      },
+      {
+        "value": "4fac636d-0ca1-4f3b-8974-bb58509b7ad1",
+        "label": "4fac636d-0ca1-4f3b-8974-bb58509b7ad1"
+      },
+      {
+        "value": "4576f328-2eed-4ce0-a3d9-d325033e35ae",
+        "label": "4576f328-2eed-4ce0-a3d9-d325033e35ae"
+      },
+      {
+        "value": "ce56bf2f-250d-436d-8c3d-88f75fae7a81",
+        "label": "ce56bf2f-250d-436d-8c3d-88f75fae7a81"
+      },
+      {
+        "value": "68b08dcd-0629-46cc-9f79-4a1e390e533a",
+        "label": "68b08dcd-0629-46cc-9f79-4a1e390e533a"
+      },
+      {
+        "value": "8c3a37c4-eb15-47f2-80d2-82eb469474b0",
+        "label": "8c3a37c4-eb15-47f2-80d2-82eb469474b0"
+      },
+      {
+        "value": "9d2c7bd1-f729-498f-ab15-75a8275e3af0",
+        "label": "9d2c7bd1-f729-498f-ab15-75a8275e3af0"
+      },
+      {
+        "value": "f73cb857-cf79-4ca3-b075-5357bc60a8e6",
+        "label": "f73cb857-cf79-4ca3-b075-5357bc60a8e6"
+      },
+      {
+        "value": "3d456a72-9ca8-4050-90bf-ac491d358606",
+        "label": "3d456a72-9ca8-4050-90bf-ac491d358606"
+      },
+      {
+        "value": "49231364-f4de-4e74-a054-aa2d4790c5f0",
+        "label": "49231364-f4de-4e74-a054-aa2d4790c5f0"
+      },
+      {
+        "value": "6279ccee-3033-4057-8721-4df5b969f22f",
+        "label": "6279ccee-3033-4057-8721-4df5b969f22f"
+      },
+      {
+        "value": "b4b417d4-b997-419d-93f3-55ee7cfb791a",
+        "label": "b4b417d4-b997-419d-93f3-55ee7cfb791a"
+      },
+      {
+        "value": "0f5475a9-5e25-4129-ae54-03dff1f2e774",
+        "label": "0f5475a9-5e25-4129-ae54-03dff1f2e774"
+      },
+      {
+        "value": "ed1cf084-aa11-4b03-be48-de9bfa74403f",
+        "label": "ed1cf084-aa11-4b03-be48-de9bfa74403f"
+      },
+      {
+        "value": "349a8922-7abb-44fd-ad71-bd9ae0bb1eb3",
+        "label": "349a8922-7abb-44fd-ad71-bd9ae0bb1eb3"
+      },
+      {
+        "value": "83ff20cd-d7f7-4e35-b785-48387825f8a1",
+        "label": "83ff20cd-d7f7-4e35-b785-48387825f8a1"
+      },
+      {
+        "value": "ee9ee94a-5d82-462b-a3f7-7f30d6535ffa",
+        "label": "ee9ee94a-5d82-462b-a3f7-7f30d6535ffa"
+      },
+      {
+        "value": "e5d203c2-20bd-40a7-a1c6-4791b4700799",
+        "label": "e5d203c2-20bd-40a7-a1c6-4791b4700799"
+      },
+      {
+        "value": "4b215329-e34c-4e52-9de0-6c2d8017c659",
+        "label": "4b215329-e34c-4e52-9de0-6c2d8017c659"
+      },
+      {
+        "value": "5df818c2-b601-4e7f-bcaa-774d3ab00f63",
+        "label": "5df818c2-b601-4e7f-bcaa-774d3ab00f63"
+      },
+      {
+        "value": "73d1dcc0-a955-422b-9bbb-479ca6c6d3b8",
+        "label": "73d1dcc0-a955-422b-9bbb-479ca6c6d3b8"
+      },
+      {
+        "value": "65454280-d1b6-4554-8075-3fe6a2ae4da5",
+        "label": "65454280-d1b6-4554-8075-3fe6a2ae4da5"
+      },
+      {
+        "value": "70a68a51-c27a-4245-abf3-983bc9c84028",
+        "label": "70a68a51-c27a-4245-abf3-983bc9c84028"
+      },
+      {
+        "value": "b8fe1bd2-c528-4769-bc0f-49a4da17c7df",
+        "label": "b8fe1bd2-c528-4769-bc0f-49a4da17c7df"
+      },
+      {
+        "value": "1a6a8592-e48a-4524-a339-ecfaec4589ba",
+        "label": "1a6a8592-e48a-4524-a339-ecfaec4589ba"
+      },
+      {
+        "value": "fff477ba-0f2f-4ce3-a446-624e90e50fe8",
+        "label": "fff477ba-0f2f-4ce3-a446-624e90e50fe8"
+      },
+      {
+        "value": "d86fa5be-3d11-4429-993d-366744fa4bd7",
+        "label": "d86fa5be-3d11-4429-993d-366744fa4bd7"
+      },
+      {
+        "value": "6a85ca93-fd02-43dc-869c-51077629d18a",
+        "label": "6a85ca93-fd02-43dc-869c-51077629d18a"
+      },
+      {
+        "value": "405f06aa-2a02-42a1-af9e-0b79f6f663c2",
+        "label": "405f06aa-2a02-42a1-af9e-0b79f6f663c2"
+      },
+      {
+        "value": "9848afef-34a2-47f4-84e8-5033f0140d24",
+        "label": "9848afef-34a2-47f4-84e8-5033f0140d24"
+      },
+      {
+        "value": "5d45e5d0-d937-4246-acc9-a5f061542f70",
+        "label": "5d45e5d0-d937-4246-acc9-a5f061542f70"
+      },
+      {
+        "value": "65cef5ab-5d04-4891-93c8-5a0ea1c81aed",
+        "label": "65cef5ab-5d04-4891-93c8-5a0ea1c81aed"
+      },
+      {
+        "value": "236969b8-a54c-4e84-a5f2-f0777128da9b",
+        "label": "236969b8-a54c-4e84-a5f2-f0777128da9b"
+      },
+      {
+        "value": "76feac55-7b28-4ab7-86ae-42054f64ed7e",
+        "label": "76feac55-7b28-4ab7-86ae-42054f64ed7e"
+      },
+      {
+        "value": "c5c8e0be-5dd3-43c3-b1f0-640a95bad845",
+        "label": "c5c8e0be-5dd3-43c3-b1f0-640a95bad845"
+      },
+      {
+        "value": "06fec909-c0cc-4203-8425-f734c4aca433",
+        "label": "06fec909-c0cc-4203-8425-f734c4aca433"
+      },
+      {
+        "value": "b96f92b1-9cb3-493e-bba2-1bce71818559",
+        "label": "b96f92b1-9cb3-493e-bba2-1bce71818559"
+      },
+      {
+        "value": "cab4ee1e-148a-4a9a-b516-183dbcec378b",
+        "label": "cab4ee1e-148a-4a9a-b516-183dbcec378b"
+      },
+      {
+        "value": "76c5ffb9-2235-424d-8d15-e9296965e4f3",
+        "label": "76c5ffb9-2235-424d-8d15-e9296965e4f3"
+      },
+      {
+        "value": "ced426b8-e354-4028-97e8-45276ac551e5",
+        "label": "ced426b8-e354-4028-97e8-45276ac551e5"
+      },
+      {
+        "value": "710a4abd-9569-42b9-84bc-331e531f4424",
+        "label": "710a4abd-9569-42b9-84bc-331e531f4424"
+      },
+      {
+        "value": "b3dca57c-9bdf-48be-b454-78606e45fd53",
+        "label": "b3dca57c-9bdf-48be-b454-78606e45fd53"
+      },
+      {
+        "value": "ac174f3b-1e5f-45cc-9c9c-33283c9c528c",
+        "label": "ac174f3b-1e5f-45cc-9c9c-33283c9c528c"
+      },
+      {
+        "value": "4e58e9c6-f256-4574-8a65-dbebd371998e",
+        "label": "4e58e9c6-f256-4574-8a65-dbebd371998e"
+      },
+      {
+        "value": "50116d4b-b397-4316-9df0-ead464aa14a5",
+        "label": "50116d4b-b397-4316-9df0-ead464aa14a5"
+      },
+      {
+        "value": "91c39241-c40b-4619-b7a7-353c84d389e3",
+        "label": "91c39241-c40b-4619-b7a7-353c84d389e3"
+      },
+      {
+        "value": "aba44926-a29d-4358-90d7-a07483642f0d",
+        "label": "aba44926-a29d-4358-90d7-a07483642f0d"
+      },
+      {
+        "value": "cea09604-56fa-43cc-8147-42f95df00359",
+        "label": "cea09604-56fa-43cc-8147-42f95df00359"
+      },
+      {
+        "value": "a0d7561a-3ec0-4076-a76a-a40d56eb1096",
+        "label": "a0d7561a-3ec0-4076-a76a-a40d56eb1096"
+      },
+      {
+        "value": "7c07747e-8aaa-485f-9b86-7d13f6fcc675",
+        "label": "7c07747e-8aaa-485f-9b86-7d13f6fcc675"
+      },
+      {
+        "value": "116e98ad-d378-468c-9def-f2fa29387267",
+        "label": "116e98ad-d378-468c-9def-f2fa29387267"
+      },
+      {
+        "value": "b831fa9b-adc0-4ad0-b5ad-ba4cce4f54a3",
+        "label": "b831fa9b-adc0-4ad0-b5ad-ba4cce4f54a3"
+      },
+      {
+        "value": "0e62cb4c-46a8-4ab4-8efd-b5955ad785af",
+        "label": "0e62cb4c-46a8-4ab4-8efd-b5955ad785af"
+      },
+      {
+        "value": "4c3f2d55-4504-4e6c-a385-8d5ee6d3635d",
+        "label": "4c3f2d55-4504-4e6c-a385-8d5ee6d3635d"
+      },
+      {
+        "value": "3406b8b5-f474-4c9b-ae93-aeca63c2461c",
+        "label": "3406b8b5-f474-4c9b-ae93-aeca63c2461c"
+      },
+      {
+        "value": "7d7484be-e4bc-42f0-8c9e-64c530fe3ba6",
+        "label": "7d7484be-e4bc-42f0-8c9e-64c530fe3ba6"
+      },
+      {
+        "value": "f095d4b8-bc90-4770-9f70-9245822a85d4",
+        "label": "f095d4b8-bc90-4770-9f70-9245822a85d4"
+      },
+      {
+        "value": "fe7b9618-d34a-46cc-9ef7-c8a95497cff0",
+        "label": "fe7b9618-d34a-46cc-9ef7-c8a95497cff0"
+      },
+      {
+        "value": "53487ddf-2881-4ef6-a6cc-036029d63b7c",
+        "label": "53487ddf-2881-4ef6-a6cc-036029d63b7c"
+      },
+      {
+        "value": "13a13792-fc55-4379-9df0-580b81c39f15",
+        "label": "13a13792-fc55-4379-9df0-580b81c39f15"
+      },
+      {
+        "value": "d95038fc-3d8f-495b-848b-95cc69f8f466",
+        "label": "d95038fc-3d8f-495b-848b-95cc69f8f466"
+      },
+      {
+        "value": "077fdcfd-7088-40e9-a029-2cb82263bed1",
+        "label": "077fdcfd-7088-40e9-a029-2cb82263bed1"
+      },
+      {
+        "value": "b5b62ccb-69f2-42f3-8080-4651d79bfa38",
+        "label": "b5b62ccb-69f2-42f3-8080-4651d79bfa38"
+      },
+      {
+        "value": "c8af507e-8b7e-41b8-abcc-4ed5f4fb49dc",
+        "label": "c8af507e-8b7e-41b8-abcc-4ed5f4fb49dc"
+      },
+      {
+        "value": "a7619163-65b8-4fb1-81d2-d2145ac1783e",
+        "label": "a7619163-65b8-4fb1-81d2-d2145ac1783e"
+      },
+      {
+        "value": "f5b4a740-26f1-47fc-b050-bf046af985d2",
+        "label": "f5b4a740-26f1-47fc-b050-bf046af985d2"
+      },
+      {
+        "value": "39d83050-f155-4948-be31-e00003d99b07",
+        "label": "39d83050-f155-4948-be31-e00003d99b07"
+      }
+    ]
+  },
+  "dashboard": {
+    "pending": 8,
+    "overdue": 2,
+    "upcoming": 4,
+    "pending_documents": 4,
+    "pending_agreements": 1,
+    "progress": 51,
+    "task_count": 8,
+    "closed": 0,
+    "by_person": [
+      {
+        "id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "name": "Elena · demo",
+        "count": 3,
+        "progress": 38
+      },
+      {
+        "id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "name": "Lucía · demo",
+        "count": 2,
+        "progress": 15
+      },
+      {
+        "id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "name": "Mateo · demo",
+        "count": 3,
+        "progress": 87
+      }
+    ],
+    "by_axis": [
+      {
+        "id": "0a00196f-eab8-491f-9177-29d93d650c32",
+        "name": "Acreditación · demo",
+        "color": "#6a65bc",
+        "count": 3,
+        "progress": 87
+      },
+      {
+        "id": "77676c99-d15d-4392-b662-c5706c0f4333",
+        "name": "Gestión de la calidad · demo",
+        "color": "#13847b",
+        "count": 3,
+        "progress": 38
+      },
+      {
+        "id": "ba7da3ca-a25a-469d-9d5d-ff93732151e5",
+        "name": "Gestión institucional · demo",
+        "color": "#da9546",
+        "count": 2,
+        "progress": 15
+      }
+    ],
+    "upcoming_tasks": [
+      {
+        "title": "Revisar la matriz de compromisos · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "b2ac926f-0d12-46d6-b8ad-fc7201f27e83",
+        "parent_id": null,
+        "responsible_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-15",
+        "status": "en_revision",
+        "priority": "media",
+        "progress": 100,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "3297251b-5ee4-4ec3-b91d-9ee1bfc28b7a",
+        "created_at": "2026-10-13T19:14:28.514757",
+        "updated_at": "2026-10-13T19:14:28.514765",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Ruta de autoevaluación · demo",
+          "responsible_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Consolidar el diagnóstico de procesos · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "parent_id": null,
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-16",
+        "status": "en_progreso",
+        "priority": "media",
+        "progress": 75,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "ed98c786-ccb9-46b0-80ad-603ea77697b6",
+        "created_at": "2026-10-13T19:14:28.505120",
+        "updated_at": "2026-10-13T19:14:28.505127",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Plan de mejora institucional · demo",
+          "responsible_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Coordinar mesa de trabajo · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "8c53dae4-f685-4339-b43a-3c234212c34f",
+        "parent_id": null,
+        "responsible_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-18",
+        "status": "pendiente",
+        "priority": "media",
+        "progress": 0,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "bc44395e-415f-4fee-9c90-963baaeb87dd",
+        "created_at": "2026-10-13T19:14:28.524023",
+        "updated_at": "2026-10-13T19:14:28.524028",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Organización del archivo digital · demo",
+          "responsible_id": "Lucía · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Preparar informe de seguimiento · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "parent_id": null,
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-19",
+        "status": "pendiente",
+        "priority": "media",
+        "progress": 0,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "52856ab5-341d-4f91-ae5c-217859718336",
+        "created_at": "2026-10-13T19:14:28.519627",
+        "updated_at": "2026-10-13T19:14:28.519631",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Plan de mejora institucional · demo",
+          "responsible_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "overdue_tasks": [
+      {
+        "title": "Solicitar medios de verificación · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "8c53dae4-f685-4339-b43a-3c234212c34f",
+        "parent_id": null,
+        "responsible_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-09",
+        "status": "en_progreso",
+        "priority": "alta",
+        "progress": 30,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "f3d466f9-a0a1-4d8a-96e1-1f87cabd7b82",
+        "created_at": "2026-10-13T19:14:28.517404",
+        "updated_at": "2026-10-13T19:14:28.517409",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Organización del archivo digital · demo",
+          "responsible_id": "Lucía · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Revisar avances semanales · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "parent_id": null,
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-12",
+        "status": "en_progreso",
+        "priority": "alta",
+        "progress": 40,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "57b6e58c-c641-4454-a5da-989dd3e32123",
+        "created_at": "2026-10-13T19:14:28.526085",
+        "updated_at": "2026-10-13T19:14:28.526090",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Plan de mejora institucional · demo",
+          "responsible_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "projects": [
+      {
+        "title": "Plan de mejora institucional · demo",
+        "description": "Proyecto ficticio para explorar el sistema.",
+        "axis_id": "77676c99-d15d-4392-b662-c5706c0f4333",
+        "process_id": "629675d9-dece-46e5-a643-198171a0d50e",
+        "responsible_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "start_date": "2026-09-08",
+        "due_date": "2026-12-12",
+        "status": "en_progreso",
+        "id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "created_at": "2026-10-13T19:14:28.499475",
+        "updated_at": "2026-10-13T19:14:28.499481",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "axis_id": "Gestión de la calidad · demo",
+          "process_id": "Mejora continua · demo",
+          "responsible_id": "Lucía · demo",
+          "modified_by": "Administración demo"
+        },
+        "progress": 38,
+        "task_count": 3
+      },
+      {
+        "title": "Ruta de autoevaluación · demo",
+        "description": "Proyecto ficticio para explorar el sistema.",
+        "axis_id": "0a00196f-eab8-491f-9177-29d93d650c32",
+        "process_id": "d4e918b0-ae51-4cd7-94e9-cb998d083755",
+        "responsible_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "start_date": "2026-09-08",
+        "due_date": "2026-12-12",
+        "status": "en_progreso",
+        "id": "b2ac926f-0d12-46d6-b8ad-fc7201f27e83",
+        "created_at": "2026-10-13T19:14:28.501520",
+        "updated_at": "2026-10-13T19:14:28.501527",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "axis_id": "Acreditación · demo",
+          "process_id": "Autoevaluación · demo",
+          "responsible_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        },
+        "progress": 87,
+        "task_count": 3
+      },
+      {
+        "title": "Organización del archivo digital · demo",
+        "description": "Proyecto ficticio para explorar el sistema.",
+        "axis_id": "ba7da3ca-a25a-469d-9d5d-ff93732151e5",
+        "process_id": "09a11e2e-d098-4e64-abf6-25c63320f8b6",
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "start_date": "2026-09-08",
+        "due_date": "2026-12-12",
+        "status": "en_progreso",
+        "id": "8c53dae4-f685-4339-b43a-3c234212c34f",
+        "created_at": "2026-10-13T19:14:28.502190",
+        "updated_at": "2026-10-13T19:14:28.502194",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "axis_id": "Gestión institucional · demo",
+          "process_id": "Gestión documental · demo",
+          "responsible_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        },
+        "progress": 15,
+        "task_count": 2
+      }
+    ],
+    "recent_activity": [
+      {
+        "id": "03e248cd-12ae-44e7-a727-397fb38f8cee",
+        "created_at": "2026-10-13T19:14:28.609493",
+        "actor_id": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "entity": "demo",
+        "record_id": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "action": "seed",
+        "before": null,
+        "after": {
+          "notice": "Todos los registros son ficticios."
+        }
+      }
+    ]
+  },
+  "alerts": [
+    {
+      "entity": "tasks",
+      "id": "f3d466f9-a0a1-4d8a-96e1-1f87cabd7b82",
+      "title": "Solicitar medios de verificación · demo",
+      "due_date": "2026-10-09",
+      "overdue": true,
+      "label": "Tareas"
+    },
+    {
+      "entity": "tasks",
+      "id": "57b6e58c-c641-4454-a5da-989dd3e32123",
+      "title": "Revisar avances semanales · demo",
+      "due_date": "2026-10-12",
+      "overdue": true,
+      "label": "Tareas"
+    },
+    {
+      "entity": "tasks",
+      "id": "3297251b-5ee4-4ec3-b91d-9ee1bfc28b7a",
+      "title": "Revisar la matriz de compromisos · demo",
+      "due_date": "2026-10-15",
+      "overdue": false,
+      "label": "Tareas"
+    },
+    {
+      "entity": "tasks",
+      "id": "ed98c786-ccb9-46b0-80ad-603ea77697b6",
+      "title": "Consolidar el diagnóstico de procesos · demo",
+      "due_date": "2026-10-16",
+      "overdue": false,
+      "label": "Tareas"
+    },
+    {
+      "entity": "tasks",
+      "id": "bc44395e-415f-4fee-9c90-963baaeb87dd",
+      "title": "Coordinar mesa de trabajo · demo",
+      "due_date": "2026-10-18",
+      "overdue": false,
+      "label": "Tareas"
+    },
+    {
+      "entity": "evidence",
+      "id": "2129e990-e547-447a-b91b-b1000518d210",
+      "title": "Matriz de seguimiento · demo",
+      "due_date": "2026-10-18",
+      "overdue": false,
+      "label": "Evidencias"
+    },
+    {
+      "entity": "tasks",
+      "id": "52856ab5-341d-4f91-ae5c-217859718336",
+      "title": "Preparar informe de seguimiento · demo",
+      "due_date": "2026-10-19",
+      "overdue": false,
+      "label": "Tareas"
+    },
+    {
+      "entity": "deliverables",
+      "id": "336b1e80-6bd1-4541-bb1d-9c0681d39116",
+      "title": "Primer informe de actividades · demo",
+      "due_date": "2026-10-19",
+      "overdue": false,
+      "label": "Entregables"
+    },
+    {
+      "entity": "agreements",
+      "id": "0e6b9c3d-4907-4f19-9c62-a90b601d4957",
+      "title": "Consolidar compromisos de la mesa · demo",
+      "due_date": "2026-10-20",
+      "overdue": false,
+      "label": "Acuerdos"
+    }
+  ],
+  "axes": {
+    "items": [
+      {
+        "name": "Gestión institucional · demo",
+        "color": "#da9546",
+        "id": "ba7da3ca-a25a-469d-9d5d-ff93732151e5",
+        "created_at": "2026-10-13T19:14:28.492595",
+        "updated_at": "2026-10-13T19:14:28.492601",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Acreditación · demo",
+        "color": "#6a65bc",
+        "id": "0a00196f-eab8-491f-9177-29d93d650c32",
+        "created_at": "2026-10-13T19:14:28.491990",
+        "updated_at": "2026-10-13T19:14:28.491996",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Gestión de la calidad · demo",
+        "color": "#13847b",
+        "id": "77676c99-d15d-4392-b662-c5706c0f4333",
+        "created_at": "2026-10-13T19:14:28.488120",
+        "updated_at": "2026-10-13T19:14:28.488134",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 3,
+    "page": 1,
+    "page_size": 20
+  },
+  "processes": {
+    "items": [
+      {
+        "name": "Gestión documental · demo",
+        "axis_id": "ba7da3ca-a25a-469d-9d5d-ff93732151e5",
+        "id": "09a11e2e-d098-4e64-abf6-25c63320f8b6",
+        "created_at": "2026-10-13T19:14:28.496833",
+        "updated_at": "2026-10-13T19:14:28.496837",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "axis_id": "Gestión institucional · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Autoevaluación · demo",
+        "axis_id": "0a00196f-eab8-491f-9177-29d93d650c32",
+        "id": "d4e918b0-ae51-4cd7-94e9-cb998d083755",
+        "created_at": "2026-10-13T19:14:28.496212",
+        "updated_at": "2026-10-13T19:14:28.496219",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "axis_id": "Acreditación · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Mejora continua · demo",
+        "axis_id": "77676c99-d15d-4392-b662-c5706c0f4333",
+        "id": "629675d9-dece-46e5-a643-198171a0d50e",
+        "created_at": "2026-10-13T19:14:28.494521",
+        "updated_at": "2026-10-13T19:14:28.494528",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "axis_id": "Gestión de la calidad · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 3,
+    "page": 1,
+    "page_size": 20
+  },
+  "projects": {
+    "items": [
+      {
+        "title": "Organización del archivo digital · demo",
+        "description": "Proyecto ficticio para explorar el sistema.",
+        "axis_id": "ba7da3ca-a25a-469d-9d5d-ff93732151e5",
+        "process_id": "09a11e2e-d098-4e64-abf6-25c63320f8b6",
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "start_date": "2026-09-08",
+        "due_date": "2026-12-12",
+        "status": "en_progreso",
+        "id": "8c53dae4-f685-4339-b43a-3c234212c34f",
+        "created_at": "2026-10-13T19:14:28.502190",
+        "updated_at": "2026-10-13T19:14:28.502194",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "axis_id": "Gestión institucional · demo",
+          "process_id": "Gestión documental · demo",
+          "responsible_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        },
+        "progress": 15,
+        "task_count": 2
+      },
+      {
+        "title": "Ruta de autoevaluación · demo",
+        "description": "Proyecto ficticio para explorar el sistema.",
+        "axis_id": "0a00196f-eab8-491f-9177-29d93d650c32",
+        "process_id": "d4e918b0-ae51-4cd7-94e9-cb998d083755",
+        "responsible_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "start_date": "2026-09-08",
+        "due_date": "2026-12-12",
+        "status": "en_progreso",
+        "id": "b2ac926f-0d12-46d6-b8ad-fc7201f27e83",
+        "created_at": "2026-10-13T19:14:28.501520",
+        "updated_at": "2026-10-13T19:14:28.501527",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "axis_id": "Acreditación · demo",
+          "process_id": "Autoevaluación · demo",
+          "responsible_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        },
+        "progress": 87,
+        "task_count": 3
+      },
+      {
+        "title": "Plan de mejora institucional · demo",
+        "description": "Proyecto ficticio para explorar el sistema.",
+        "axis_id": "77676c99-d15d-4392-b662-c5706c0f4333",
+        "process_id": "629675d9-dece-46e5-a643-198171a0d50e",
+        "responsible_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "start_date": "2026-09-08",
+        "due_date": "2026-12-12",
+        "status": "en_progreso",
+        "id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "created_at": "2026-10-13T19:14:28.499475",
+        "updated_at": "2026-10-13T19:14:28.499481",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "axis_id": "Gestión de la calidad · demo",
+          "process_id": "Mejora continua · demo",
+          "responsible_id": "Lucía · demo",
+          "modified_by": "Administración demo"
+        },
+        "progress": 38,
+        "task_count": 3
+      }
+    ],
+    "total": 3,
+    "page": 1,
+    "page_size": 20
+  },
+  "milestones": {
+    "items": [
+      {
+        "title": "Revisión de resultados · demo",
+        "project_id": "8c53dae4-f685-4339-b43a-3c234212c34f",
+        "due_date": "2026-11-12",
+        "status": "pendiente",
+        "id": "612e5362-3785-443a-a2b4-e0668c021cbf",
+        "created_at": "2026-10-13T19:14:28.534494",
+        "updated_at": "2026-10-13T19:14:28.534499",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Organización del archivo digital · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Revisión de resultados · demo",
+        "project_id": "b2ac926f-0d12-46d6-b8ad-fc7201f27e83",
+        "due_date": "2026-11-12",
+        "status": "pendiente",
+        "id": "0ae85cca-f242-4570-bbe4-57cb553a7bcc",
+        "created_at": "2026-10-13T19:14:28.533769",
+        "updated_at": "2026-10-13T19:14:28.533776",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Ruta de autoevaluación · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Revisión de resultados · demo",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "due_date": "2026-11-12",
+        "status": "pendiente",
+        "id": "d60b7b67-daf8-482f-8140-53e136ed02e5",
+        "created_at": "2026-10-13T19:14:28.532062",
+        "updated_at": "2026-10-13T19:14:28.532070",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Plan de mejora institucional · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 3,
+    "page": 1,
+    "page_size": 20
+  },
+  "tasks": {
+    "items": [
+      {
+        "title": "Ordenar evidencias del periodo · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "b2ac926f-0d12-46d6-b8ad-fc7201f27e83",
+        "parent_id": null,
+        "responsible_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-28",
+        "status": "en_revision",
+        "priority": "media",
+        "progress": 100,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "f54ccc39-c0d3-4008-bd2e-481eceec0c79",
+        "created_at": "2026-10-13T19:14:28.528202",
+        "updated_at": "2026-10-13T19:14:28.528208",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Ruta de autoevaluación · demo",
+          "responsible_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Revisar avances semanales · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "parent_id": null,
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-12",
+        "status": "en_progreso",
+        "priority": "alta",
+        "progress": 40,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "57b6e58c-c641-4454-a5da-989dd3e32123",
+        "created_at": "2026-10-13T19:14:28.526085",
+        "updated_at": "2026-10-13T19:14:28.526090",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Plan de mejora institucional · demo",
+          "responsible_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Coordinar mesa de trabajo · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "8c53dae4-f685-4339-b43a-3c234212c34f",
+        "parent_id": null,
+        "responsible_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-18",
+        "status": "pendiente",
+        "priority": "media",
+        "progress": 0,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "bc44395e-415f-4fee-9c90-963baaeb87dd",
+        "created_at": "2026-10-13T19:14:28.524023",
+        "updated_at": "2026-10-13T19:14:28.524028",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Organización del archivo digital · demo",
+          "responsible_id": "Lucía · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Actualizar inventario de documentos · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "b2ac926f-0d12-46d6-b8ad-fc7201f27e83",
+        "parent_id": null,
+        "responsible_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-25",
+        "status": "en_progreso",
+        "priority": "media",
+        "progress": 60,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "c7c88298-6120-4153-98e8-d661ddb156a0",
+        "created_at": "2026-10-13T19:14:28.521796",
+        "updated_at": "2026-10-13T19:14:28.521801",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Ruta de autoevaluación · demo",
+          "responsible_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Preparar informe de seguimiento · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "parent_id": null,
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-19",
+        "status": "pendiente",
+        "priority": "media",
+        "progress": 0,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "52856ab5-341d-4f91-ae5c-217859718336",
+        "created_at": "2026-10-13T19:14:28.519627",
+        "updated_at": "2026-10-13T19:14:28.519631",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Plan de mejora institucional · demo",
+          "responsible_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Solicitar medios de verificación · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "8c53dae4-f685-4339-b43a-3c234212c34f",
+        "parent_id": null,
+        "responsible_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-09",
+        "status": "en_progreso",
+        "priority": "alta",
+        "progress": 30,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "f3d466f9-a0a1-4d8a-96e1-1f87cabd7b82",
+        "created_at": "2026-10-13T19:14:28.517404",
+        "updated_at": "2026-10-13T19:14:28.517409",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Organización del archivo digital · demo",
+          "responsible_id": "Lucía · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Revisar la matriz de compromisos · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "b2ac926f-0d12-46d6-b8ad-fc7201f27e83",
+        "parent_id": null,
+        "responsible_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-15",
+        "status": "en_revision",
+        "priority": "media",
+        "progress": 100,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "3297251b-5ee4-4ec3-b91d-9ee1bfc28b7a",
+        "created_at": "2026-10-13T19:14:28.514757",
+        "updated_at": "2026-10-13T19:14:28.514765",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Ruta de autoevaluación · demo",
+          "responsible_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Consolidar el diagnóstico de procesos · demo",
+        "description": "Actividad ficticia; no representa compromisos institucionales.",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "parent_id": null,
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "start_date": "2026-09-29",
+        "due_date": "2026-10-16",
+        "status": "en_progreso",
+        "priority": "media",
+        "progress": 75,
+        "recurrence": "ninguna",
+        "recurrence_source_id": null,
+        "id": "ed98c786-ccb9-46b0-80ad-603ea77697b6",
+        "created_at": "2026-10-13T19:14:28.505120",
+        "updated_at": "2026-10-13T19:14:28.505127",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "project_id": "Plan de mejora institucional · demo",
+          "responsible_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 8,
+    "page": 1,
+    "page_size": 20
+  },
+  "task-assignments": {
+    "items": [
+      {
+        "task_id": "f54ccc39-c0d3-4008-bd2e-481eceec0c79",
+        "user_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "id": "be488df9-ea40-4bd1-a08c-2534d6857134",
+        "created_at": "2026-10-13T19:14:28.528975",
+        "updated_at": "2026-10-13T19:14:28.528981",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Ordenar evidencias del periodo · demo",
+          "user_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "57b6e58c-c641-4454-a5da-989dd3e32123",
+        "user_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "id": "91e2cd13-85cb-4c22-8528-01f59fdee4c1",
+        "created_at": "2026-10-13T19:14:28.526753",
+        "updated_at": "2026-10-13T19:14:28.526758",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Revisar avances semanales · demo",
+          "user_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "bc44395e-415f-4fee-9c90-963baaeb87dd",
+        "user_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "id": "c2627a08-6aa3-43af-a9f3-84616e40ba6b",
+        "created_at": "2026-10-13T19:14:28.524702",
+        "updated_at": "2026-10-13T19:14:28.524707",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Coordinar mesa de trabajo · demo",
+          "user_id": "Lucía · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "c7c88298-6120-4153-98e8-d661ddb156a0",
+        "user_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "id": "65662901-6b3d-4368-a54b-e4e56d340509",
+        "created_at": "2026-10-13T19:14:28.522503",
+        "updated_at": "2026-10-13T19:14:28.522508",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Actualizar inventario de documentos · demo",
+          "user_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "52856ab5-341d-4f91-ae5c-217859718336",
+        "user_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "id": "dcadc44b-53d2-47b1-b22e-d0c08052021d",
+        "created_at": "2026-10-13T19:14:28.520334",
+        "updated_at": "2026-10-13T19:14:28.520339",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Preparar informe de seguimiento · demo",
+          "user_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "f3d466f9-a0a1-4d8a-96e1-1f87cabd7b82",
+        "user_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "id": "4c4f3048-efe8-4f74-a430-7c1780c4b402",
+        "created_at": "2026-10-13T19:14:28.518160",
+        "updated_at": "2026-10-13T19:14:28.518166",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Solicitar medios de verificación · demo",
+          "user_id": "Lucía · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "3297251b-5ee4-4ec3-b91d-9ee1bfc28b7a",
+        "user_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "id": "5f924e75-4f1a-4924-8836-4e5a404d9aa2",
+        "created_at": "2026-10-13T19:14:28.515854",
+        "updated_at": "2026-10-13T19:14:28.515862",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Revisar la matriz de compromisos · demo",
+          "user_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "ed98c786-ccb9-46b0-80ad-603ea77697b6",
+        "user_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "id": "a2b189ac-d8a6-451d-b7a5-17d6ea74884e",
+        "created_at": "2026-10-13T19:14:28.509318",
+        "updated_at": "2026-10-13T19:14:28.509328",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Consolidar el diagnóstico de procesos · demo",
+          "user_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 8,
+    "page": 1,
+    "page_size": 20
+  },
+  "task-dependencies": {
+    "items": [],
+    "total": 0,
+    "page": 1,
+    "page_size": 20
+  },
+  "task-updates": {
+    "items": [
+      {
+        "task_id": "f54ccc39-c0d3-4008-bd2e-481eceec0c79",
+        "author_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "progress": 100,
+        "comment": "Avance de demostración.",
+        "kind": "avance",
+        "id": "377b6525-33d6-4ad6-8c46-5ffecad1a40f",
+        "created_at": "2026-10-13T19:14:28.529725",
+        "updated_at": "2026-10-13T19:14:28.529731",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Ordenar evidencias del periodo · demo",
+          "author_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "57b6e58c-c641-4454-a5da-989dd3e32123",
+        "author_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "progress": 40,
+        "comment": "Avance de demostración.",
+        "kind": "avance",
+        "id": "3a50fa84-51b5-4af5-ae68-93c2905aa235",
+        "created_at": "2026-10-13T19:14:28.527427",
+        "updated_at": "2026-10-13T19:14:28.527432",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Revisar avances semanales · demo",
+          "author_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "bc44395e-415f-4fee-9c90-963baaeb87dd",
+        "author_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "progress": 0,
+        "comment": "Avance de demostración.",
+        "kind": "avance",
+        "id": "48efa5a0-e9c8-499f-8fbc-cb910e9c4b73",
+        "created_at": "2026-10-13T19:14:28.525370",
+        "updated_at": "2026-10-13T19:14:28.525375",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Coordinar mesa de trabajo · demo",
+          "author_id": "Lucía · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "c7c88298-6120-4153-98e8-d661ddb156a0",
+        "author_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "progress": 60,
+        "comment": "Avance de demostración.",
+        "kind": "avance",
+        "id": "e4e530ac-4eb6-4669-8f81-f9f91c6bbc4a",
+        "created_at": "2026-10-13T19:14:28.523233",
+        "updated_at": "2026-10-13T19:14:28.523239",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Actualizar inventario de documentos · demo",
+          "author_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "52856ab5-341d-4f91-ae5c-217859718336",
+        "author_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "progress": 0,
+        "comment": "Avance de demostración.",
+        "kind": "avance",
+        "id": "9c077ff0-dfbe-4880-9eaf-d5d70fd0f4b3",
+        "created_at": "2026-10-13T19:14:28.520997",
+        "updated_at": "2026-10-13T19:14:28.521004",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Preparar informe de seguimiento · demo",
+          "author_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "f3d466f9-a0a1-4d8a-96e1-1f87cabd7b82",
+        "author_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "progress": 30,
+        "comment": "Avance de demostración.",
+        "kind": "avance",
+        "id": "bfbbc7c8-82a3-4084-af6f-314f1cdbc0bd",
+        "created_at": "2026-10-13T19:14:28.518852",
+        "updated_at": "2026-10-13T19:14:28.518857",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Solicitar medios de verificación · demo",
+          "author_id": "Lucía · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "3297251b-5ee4-4ec3-b91d-9ee1bfc28b7a",
+        "author_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "progress": 100,
+        "comment": "Avance de demostración.",
+        "kind": "avance",
+        "id": "1b431dd9-b742-49b6-880e-9c5eca21e9bf",
+        "created_at": "2026-10-13T19:14:28.516609",
+        "updated_at": "2026-10-13T19:14:28.516615",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Revisar la matriz de compromisos · demo",
+          "author_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "task_id": "ed98c786-ccb9-46b0-80ad-603ea77697b6",
+        "author_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "progress": 75,
+        "comment": "Avance de demostración.",
+        "kind": "avance",
+        "id": "a8888fd9-2fb0-4acb-8dc4-daa45d5ac1c4",
+        "created_at": "2026-10-13T19:14:28.512449",
+        "updated_at": "2026-10-13T19:14:28.512457",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Consolidar el diagnóstico de procesos · demo",
+          "author_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 8,
+    "page": 1,
+    "page_size": 20
+  },
+  "closure-approvals": {
+    "items": [],
+    "total": 0,
+    "page": 1,
+    "page_size": 20
+  },
+  "document-types": {
+    "items": [
+      {
+        "name": "Otro",
+        "id": "bacbddeb-4cfc-409c-99d5-341c9ef5ad48",
+        "created_at": "2026-10-13T19:14:28.543912",
+        "updated_at": "2026-10-13T19:14:28.543917",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Manual",
+        "id": "9d2c62b4-8575-4129-aa89-f2bf94d361f2",
+        "created_at": "2026-10-13T19:14:28.543350",
+        "updated_at": "2026-10-13T19:14:28.543354",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Reglamento",
+        "id": "9eb55b17-2bb7-45a7-98bd-2b0047c813a2",
+        "created_at": "2026-10-13T19:14:28.542776",
+        "updated_at": "2026-10-13T19:14:28.542782",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Plan",
+        "id": "5bb852a9-840b-4f87-bee3-e5b6502a49df",
+        "created_at": "2026-10-13T19:14:28.542107",
+        "updated_at": "2026-10-13T19:14:28.542112",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Directiva",
+        "id": "5f10969d-0a0d-4c91-8f9f-ef495f02a119",
+        "created_at": "2026-10-13T19:14:28.541553",
+        "updated_at": "2026-10-13T19:14:28.541558",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Documento recibido",
+        "id": "0789140f-7203-473e-ad35-722bb13f442b",
+        "created_at": "2026-10-13T19:14:28.541009",
+        "updated_at": "2026-10-13T19:14:28.541013",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Oficio",
+        "id": "1641fd3e-3444-4a3d-96b7-9459ad27dbbb",
+        "created_at": "2026-10-13T19:14:28.540457",
+        "updated_at": "2026-10-13T19:14:28.540461",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Memorando",
+        "id": "0bcef350-a661-4988-892e-de282799fffe",
+        "created_at": "2026-10-13T19:14:28.539865",
+        "updated_at": "2026-10-13T19:14:28.539870",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Informe técnico",
+        "id": "d719c189-14d8-4e31-a934-fb68db22d5b5",
+        "created_at": "2026-10-13T19:14:28.539255",
+        "updated_at": "2026-10-13T19:14:28.539260",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Informe",
+        "id": "3d357aa7-8615-4251-9dc2-09d50f017003",
+        "created_at": "2026-10-13T19:14:28.538594",
+        "updated_at": "2026-10-13T19:14:28.538601",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Carta múltiple",
+        "id": "2b807518-59a6-40f1-af32-3cea81939569",
+        "created_at": "2026-10-13T19:14:28.537907",
+        "updated_at": "2026-10-13T19:14:28.537914",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Carta",
+        "id": "9458bf82-bc7c-4d3b-bd5d-80b624b0a49b",
+        "created_at": "2026-10-13T19:14:28.536443",
+        "updated_at": "2026-10-13T19:14:28.536451",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 12,
+    "page": 1,
+    "page_size": 20
+  },
+  "documents": {
+    "items": [
+      {
+        "title": "Carta de coordinación · demo",
+        "number": "DEMO-004",
+        "year": 2026,
+        "document_type_id": "9458bf82-bc7c-4d3b-bd5d-80b624b0a49b",
+        "section": "emitidos",
+        "date": "2026-10-13",
+        "sender": "Área ficticia A",
+        "recipient": "Área ficticia B",
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "reference_id": null,
+        "preparation_status": "elaborado",
+        "approval_status": "pendiente",
+        "sent_date": null,
+        "due_date": "2026-10-23",
+        "id": "2c22cd9d-67ff-4c44-b30e-4389e074985c",
+        "created_at": "2026-10-13T19:14:28.552272",
+        "updated_at": "2026-10-13T19:14:28.552277",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "document_type_id": "Carta",
+          "responsible_id": "Elena · demo",
+          "project_id": "Plan de mejora institucional · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Plan de trabajo · demo",
+        "number": "DEMO-003",
+        "year": 2026,
+        "document_type_id": "5bb852a9-840b-4f87-bee3-e5b6502a49df",
+        "section": "normativos",
+        "date": "2026-10-13",
+        "sender": "Área ficticia A",
+        "recipient": "Área ficticia B",
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "reference_id": null,
+        "preparation_status": "elaborado",
+        "approval_status": "pendiente",
+        "sent_date": null,
+        "due_date": "2026-10-23",
+        "id": "ddaed134-3e87-4977-9f7a-e6e6e39c9331",
+        "created_at": "2026-10-13T19:14:28.551460",
+        "updated_at": "2026-10-13T19:14:28.551467",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "document_type_id": "Plan",
+          "responsible_id": "Elena · demo",
+          "project_id": "Plan de mejora institucional · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Informe de avance · demo",
+        "number": "DEMO-002",
+        "year": 2026,
+        "document_type_id": "3d357aa7-8615-4251-9dc2-09d50f017003",
+        "section": "emitidos",
+        "date": "2026-10-13",
+        "sender": "Área ficticia A",
+        "recipient": "Área ficticia B",
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "reference_id": null,
+        "preparation_status": "elaborado",
+        "approval_status": "pendiente",
+        "sent_date": null,
+        "due_date": "2026-10-23",
+        "id": "8e1993cc-ebaa-4bd0-bf8a-557a5642b2ee",
+        "created_at": "2026-10-13T19:14:28.550554",
+        "updated_at": "2026-10-13T19:14:28.550564",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "document_type_id": "Informe",
+          "responsible_id": "Elena · demo",
+          "project_id": "Plan de mejora institucional · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "title": "Solicitud de revisión · demo",
+        "number": "DEMO-001",
+        "year": 2026,
+        "document_type_id": "0789140f-7203-473e-ad35-722bb13f442b",
+        "section": "recibidos",
+        "date": "2026-10-13",
+        "sender": "Área ficticia A",
+        "recipient": "Área ficticia B",
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "reference_id": null,
+        "preparation_status": "elaborado",
+        "approval_status": "pendiente",
+        "sent_date": null,
+        "due_date": "2026-10-23",
+        "id": "5374476a-4436-43aa-be1c-ac355b542811",
+        "created_at": "2026-10-13T19:14:28.548035",
+        "updated_at": "2026-10-13T19:14:28.548046",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "document_type_id": "Documento recibido",
+          "responsible_id": "Elena · demo",
+          "project_id": "Plan de mejora institucional · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 4,
+    "page": 1,
+    "page_size": 20
+  },
+  "document-versions": {
+    "items": [],
+    "total": 0,
+    "page": 1,
+    "page_size": 20
+  },
+  "task-documents": {
+    "items": [
+      {
+        "task_id": "ed98c786-ccb9-46b0-80ad-603ea77697b6",
+        "document_id": "5374476a-4436-43aa-be1c-ac355b542811",
+        "id": "05ece670-9dc4-44d8-bddf-5b3a05f30838",
+        "created_at": "2026-10-13T19:14:28.555770",
+        "updated_at": "2026-10-13T19:14:28.555779",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "task_id": "Consolidar el diagnóstico de procesos · demo",
+          "document_id": "Solicitud de revisión · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "cases": {
+    "items": [
+      {
+        "title": "Revisión del informe · demo",
+        "number": "EXP-DEMO-001",
+        "document_id": "8e1993cc-ebaa-4bd0-bf8a-557a5642b2ee",
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "current_department": "Área externa ficticia",
+        "status": "elaboracion",
+        "due_date": "2026-10-23",
+        "id": "a0eb7532-3f93-49e4-995e-7f59091f72fa",
+        "created_at": "2026-10-13T19:14:28.559340",
+        "updated_at": "2026-10-13T19:14:28.559350",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "document_id": "Informe de avance · demo",
+          "responsible_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "case-events": {
+    "items": [
+      {
+        "case_id": "a0eb7532-3f93-49e4-995e-7f59091f72fa",
+        "actor_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "status": "elaboracion",
+        "department": "Área externa ficticia",
+        "note": "Apertura ficticia del expediente.",
+        "resolution_id": null,
+        "id": "3168d1b8-276e-49e0-8f82-6e4aa0588989",
+        "created_at": "2026-10-13T19:14:28.562701",
+        "updated_at": "2026-10-13T19:14:28.562711",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "case_id": "Revisión del informe · demo",
+          "actor_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "meetings": {
+    "items": [
+      {
+        "title": "Mesa de seguimiento · demo",
+        "date": "2026-10-15T10:00:00",
+        "agenda": "1. Avances del periodo\n2. Evidencias pendientes\n3. Nuevos compromisos",
+        "location": "Sala de demostración",
+        "responsible_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "minutes_document_id": null,
+        "status": "programada",
+        "id": "eaa62423-040a-4380-b71c-2e765895d47b",
+        "created_at": "2026-10-13T19:14:28.567197",
+        "updated_at": "2026-10-13T19:14:28.567209",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "responsible_id": "Mateo · demo",
+          "project_id": "Plan de mejora institucional · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "attendees": {
+    "items": [
+      {
+        "meeting_id": "eaa62423-040a-4380-b71c-2e765895d47b",
+        "user_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "attended": false,
+        "id": "f7628b31-c610-4751-a95d-22260567b314",
+        "created_at": "2026-10-13T19:14:28.573010",
+        "updated_at": "2026-10-13T19:14:28.573015",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "meeting_id": "Mesa de seguimiento · demo",
+          "user_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "meeting_id": "eaa62423-040a-4380-b71c-2e765895d47b",
+        "user_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "attended": false,
+        "id": "f5ad1484-0506-42f2-b3a0-d226070a9bf9",
+        "created_at": "2026-10-13T19:14:28.572323",
+        "updated_at": "2026-10-13T19:14:28.572330",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "meeting_id": "Mesa de seguimiento · demo",
+          "user_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "meeting_id": "eaa62423-040a-4380-b71c-2e765895d47b",
+        "user_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "attended": false,
+        "id": "fef3b4b4-eb8f-4e87-94c3-6c11f31ec223",
+        "created_at": "2026-10-13T19:14:28.570694",
+        "updated_at": "2026-10-13T19:14:28.570704",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "meeting_id": "Mesa de seguimiento · demo",
+          "user_id": "Lucía · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 3,
+    "page": 1,
+    "page_size": 20
+  },
+  "agreements": {
+    "items": [
+      {
+        "title": "Consolidar compromisos de la mesa · demo",
+        "meeting_id": "eaa62423-040a-4380-b71c-2e765895d47b",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "responsible_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "due_date": "2026-10-20",
+        "task_id": null,
+        "status": "pendiente",
+        "id": "0e6b9c3d-4907-4f19-9c62-a90b601d4957",
+        "created_at": "2026-10-13T19:14:28.575907",
+        "updated_at": "2026-10-13T19:14:28.575920",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "meeting_id": "Mesa de seguimiento · demo",
+          "project_id": "Plan de mejora institucional · demo",
+          "responsible_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "evidence": {
+    "items": [
+      {
+        "title": "Matriz de seguimiento · demo",
+        "category": "Matriz",
+        "date": "2026-10-13",
+        "author_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "requested_department": "Área ficticia",
+        "due_date": "2026-10-18",
+        "request_status": "solicitada",
+        "id": "2129e990-e547-447a-b91b-b1000518d210",
+        "created_at": "2026-10-13T19:14:28.579899",
+        "updated_at": "2026-10-13T19:14:28.579908",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "author_id": "Elena · demo",
+          "modified_by": "Administración demo"
+        },
+        "validation_status": "pendiente",
+        "version": 0,
+        "url": null
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "evidence-versions": {
+    "items": [],
+    "total": 0,
+    "page": 1,
+    "page_size": 20
+  },
+  "evidence-validations": {
+    "items": [],
+    "total": 0,
+    "page": 1,
+    "page_size": 20
+  },
+  "evidence-links": {
+    "items": [],
+    "total": 0,
+    "page": 1,
+    "page_size": 20
+  },
+  "service-orders": {
+    "items": [
+      {
+        "title": "Apoyo de seguimiento · demo",
+        "number": "OS-DEMO-001",
+        "siaf": null,
+        "provider": "Prestador ficticio",
+        "responsible_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "start_date": "2026-10-03",
+        "due_date": "2026-11-12",
+        "status": "vigente",
+        "id": "d030973e-3665-4cd8-9bc4-c4bcbff1f34b",
+        "created_at": "2026-10-13T19:14:28.583146",
+        "updated_at": "2026-10-13T19:14:28.583154",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "responsible_id": "Mateo · demo",
+          "project_id": "Plan de mejora institucional · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "deliverables": {
+    "items": [
+      {
+        "title": "Primer informe de actividades · demo",
+        "service_order_id": "d030973e-3665-4cd8-9bc4-c4bcbff1f34b",
+        "responsible_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "due_date": "2026-10-19",
+        "presentation_document_id": null,
+        "status": "pendiente",
+        "id": "336b1e80-6bd1-4541-bb1d-9c0681d39116",
+        "created_at": "2026-10-13T19:14:28.586938",
+        "updated_at": "2026-10-13T19:14:28.586948",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "service_order_id": "Apoyo de seguimiento · demo",
+          "responsible_id": "Mateo · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "deliverable-reviews": {
+    "items": [],
+    "total": 0,
+    "page": 1,
+    "page_size": 20
+  },
+  "quality-models": {
+    "items": [
+      {
+        "title": "Modelo ficticio de demostración",
+        "version": "DEMO, sin vigencia normativa",
+        "status": "pendiente_validacion",
+        "validated_by": null,
+        "source_url": null,
+        "id": "a8d8a609-6c5f-40b1-90b3-38badd619d50",
+        "created_at": "2026-10-13T19:14:28.589788",
+        "updated_at": "2026-10-13T19:14:28.589796",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "criteria": {
+    "items": [
+      {
+        "title": "Criterio ficticio de seguimiento",
+        "code": "DEMO-01",
+        "quality_model_id": "a8d8a609-6c5f-40b1-90b3-38badd619d50",
+        "status": "pendiente_validacion",
+        "id": "cb9283e4-c3c8-4fff-bd11-752540d3d4d0",
+        "created_at": "2026-10-13T19:14:28.593328",
+        "updated_at": "2026-10-13T19:14:28.593337",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "quality_model_id": "Modelo ficticio de demostración",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "periods": {
+    "items": [
+      {
+        "name": "2026 · demo",
+        "start_date": "2026-01-01",
+        "end_date": "2026-12-31",
+        "id": "3a836f62-d5aa-4a2b-9619-009f3a57c08c",
+        "created_at": "2026-10-13T19:14:28.596207",
+        "updated_at": "2026-10-13T19:14:28.596216",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "indicators": {
+    "items": [
+      {
+        "title": "Compromisos con seguimiento · demo",
+        "criterion_id": "cb9283e4-c3c8-4fff-bd11-752540d3d4d0",
+        "responsible_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "project_id": "d25c88f1-df4a-40af-ab41-fcd780569029",
+        "unit": "%",
+        "description": "",
+        "id": "7a0de841-cff8-4c71-ad5f-17b69caec641",
+        "created_at": "2026-10-13T19:14:28.599015",
+        "updated_at": "2026-10-13T19:14:28.599023",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "criterion_id": "Criterio ficticio de seguimiento",
+          "responsible_id": "Lucía · demo",
+          "project_id": "Plan de mejora institucional · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "indicator-results": {
+    "items": [
+      {
+        "indicator_id": "7a0de841-cff8-4c71-ad5f-17b69caec641",
+        "period_id": "3a836f62-d5aa-4a2b-9619-009f3a57c08c",
+        "target": 90.0,
+        "result": 65.0,
+        "id": "b51b369d-74a8-4275-80a0-2151ab367849",
+        "created_at": "2026-10-13T19:14:28.601972",
+        "updated_at": "2026-10-13T19:14:28.601981",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "indicator_id": "Compromisos con seguimiento · demo",
+          "period_id": "2026 · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "improvement-plans": {
+    "items": [
+      {
+        "title": "Completar medios de verificación · demo",
+        "indicator_id": "7a0de841-cff8-4c71-ad5f-17b69caec641",
+        "task_id": null,
+        "responsible_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "due_date": "2026-11-02",
+        "status": "pendiente",
+        "id": "5cc4f2eb-993a-453e-9d92-a69a5134a2b5",
+        "created_at": "2026-10-13T19:14:28.606417",
+        "updated_at": "2026-10-13T19:14:28.606427",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "indicator_id": "Compromisos con seguimiento · demo",
+          "responsible_id": "Lucía · demo",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "users": {
+    "items": [
+      {
+        "name": "Auditoría demo",
+        "email": "auditor@example.invalid",
+        "active": true,
+        "department": "OGC",
+        "id": "3fb79455-50ee-44da-8c1b-03879eb92798",
+        "created_at": "2026-10-13T19:14:28.407220",
+        "updated_at": "2026-10-13T19:14:28.418973",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Elena · demo",
+        "email": "integrante@example.invalid",
+        "active": true,
+        "department": "OGC",
+        "id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "created_at": "2026-10-13T19:14:28.407205",
+        "updated_at": "2026-10-13T19:14:28.418991",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Mateo · demo",
+        "email": "coordinador@example.invalid",
+        "active": true,
+        "department": "OGC",
+        "id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "created_at": "2026-10-13T19:14:28.407190",
+        "updated_at": "2026-10-13T19:14:28.418984",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Lucía · demo",
+        "email": "jefatura@example.invalid",
+        "active": true,
+        "department": "OGC",
+        "id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "created_at": "2026-10-13T19:14:28.407171",
+        "updated_at": "2026-10-13T19:14:28.418987",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "Administración demo",
+        "email": "admin@example.invalid",
+        "active": true,
+        "department": "OGC",
+        "id": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "created_at": "2026-10-13T19:14:28.407128",
+        "updated_at": "2026-10-13T19:14:28.418989",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 5,
+    "page": 1,
+    "page_size": 20
+  },
+  "roles": {
+    "items": [
+      {
+        "name": "consulta_auditoria",
+        "id": "e4496d64-a550-44e7-a0e3-89fab7411fa4",
+        "created_at": "2026-10-13T19:14:28.481665",
+        "updated_at": "2026-10-13T19:14:28.481671",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "integrante",
+        "id": "4833e510-6ef9-4036-85f7-da3f7c6a38fa",
+        "created_at": "2026-10-13T19:14:28.476595",
+        "updated_at": "2026-10-13T19:14:28.476603",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "coordinador",
+        "id": "c66e6771-6683-4c2b-b2d8-9fa6127321da",
+        "created_at": "2026-10-13T19:14:28.470645",
+        "updated_at": "2026-10-13T19:14:28.470655",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "jefatura",
+        "id": "1678ebb6-a7ee-479b-b212-5df07f8d1cc0",
+        "created_at": "2026-10-13T19:14:28.445169",
+        "updated_at": "2026-10-13T19:14:28.445177",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "administrador",
+        "id": "3f9c3ced-7eb9-4326-b467-11ad99bca54e",
+        "created_at": "2026-10-13T19:14:28.441720",
+        "updated_at": "2026-10-13T19:14:28.441728",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 5,
+    "page": 1,
+    "page_size": 20
+  },
+  "permissions": {
+    "items": [
+      {
+        "name": "audit.validate",
+        "id": "bae51de0-c38c-4dd0-a4ea-77687db3bc5c",
+        "created_at": "2026-10-13T19:14:28.439706",
+        "updated_at": "2026-10-13T19:14:28.439712",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "audit.write",
+        "id": "dd5f3a94-26c4-4abc-ba76-81c90fd7b793",
+        "created_at": "2026-10-13T19:14:28.439130",
+        "updated_at": "2026-10-13T19:14:28.439134",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "audit.read",
+        "id": "bcec8c9e-2f51-45e1-b73a-709b4e6cf66d",
+        "created_at": "2026-10-13T19:14:28.438562",
+        "updated_at": "2026-10-13T19:14:28.438566",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "admin.validate",
+        "id": "8e4d99a5-4a42-4f60-9e5c-69f768627f11",
+        "created_at": "2026-10-13T19:14:28.437998",
+        "updated_at": "2026-10-13T19:14:28.438002",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "admin.write",
+        "id": "b9dbbc9d-8329-448e-bd9c-5586eb7f69de",
+        "created_at": "2026-10-13T19:14:28.437401",
+        "updated_at": "2026-10-13T19:14:28.437407",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "admin.read",
+        "id": "faee16d2-62d2-4868-92f4-0e180fac42a0",
+        "created_at": "2026-10-13T19:14:28.436649",
+        "updated_at": "2026-10-13T19:14:28.436654",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "reports.validate",
+        "id": "1df76ac8-a058-43f3-9c6b-f5b73ab68b8e",
+        "created_at": "2026-10-13T19:14:28.436069",
+        "updated_at": "2026-10-13T19:14:28.436073",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "reports.write",
+        "id": "f33753ac-d99a-4260-b570-f8ebae83a30e",
+        "created_at": "2026-10-13T19:14:28.435474",
+        "updated_at": "2026-10-13T19:14:28.435479",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "reports.read",
+        "id": "e4facebb-cc91-48cf-8332-e9ca1594dd58",
+        "created_at": "2026-10-13T19:14:28.434833",
+        "updated_at": "2026-10-13T19:14:28.434838",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "indicators.validate",
+        "id": "575edeac-6c57-489c-92f6-61ba4c846bc2",
+        "created_at": "2026-10-13T19:14:28.434194",
+        "updated_at": "2026-10-13T19:14:28.434199",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "indicators.write",
+        "id": "b17f56a2-e7a2-4698-ae3e-3cb3ed830a84",
+        "created_at": "2026-10-13T19:14:28.433573",
+        "updated_at": "2026-10-13T19:14:28.433579",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "indicators.read",
+        "id": "eddc45ac-592e-4b10-a789-f5c477498aa0",
+        "created_at": "2026-10-13T19:14:28.432966",
+        "updated_at": "2026-10-13T19:14:28.432971",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "services.validate",
+        "id": "69697046-c6fb-4d13-999c-18d9f5afd557",
+        "created_at": "2026-10-13T19:14:28.432390",
+        "updated_at": "2026-10-13T19:14:28.432394",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "services.write",
+        "id": "a0ffb185-3c76-4e75-82a3-3cf54ce65863",
+        "created_at": "2026-10-13T19:14:28.431838",
+        "updated_at": "2026-10-13T19:14:28.431842",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "services.read",
+        "id": "d46f33e6-7398-4fd6-b485-9764b79cd2bb",
+        "created_at": "2026-10-13T19:14:28.431275",
+        "updated_at": "2026-10-13T19:14:28.431282",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "evidence.validate",
+        "id": "8d155bed-da88-4712-9001-8ab05aa8eb47",
+        "created_at": "2026-10-13T19:14:28.430699",
+        "updated_at": "2026-10-13T19:14:28.430704",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "evidence.write",
+        "id": "795b1160-bcaa-4d58-a46b-c17fcc2762b4",
+        "created_at": "2026-10-13T19:14:28.430118",
+        "updated_at": "2026-10-13T19:14:28.430123",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "evidence.read",
+        "id": "6aac8d10-9e5f-4c55-9035-6c5393eb4cb0",
+        "created_at": "2026-10-13T19:14:28.429501",
+        "updated_at": "2026-10-13T19:14:28.429506",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "meetings.validate",
+        "id": "d4307e56-0ed3-44ae-9657-0384516845ae",
+        "created_at": "2026-10-13T19:14:28.428865",
+        "updated_at": "2026-10-13T19:14:28.428870",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "name": "meetings.write",
+        "id": "9b9e48d9-46e4-4ca5-ba6f-6c5bd47c7f3e",
+        "created_at": "2026-10-13T19:14:28.428276",
+        "updated_at": "2026-10-13T19:14:28.428281",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 33,
+    "page": 1,
+    "page_size": 20
+  },
+  "user-roles": {
+    "items": [
+      {
+        "user_id": "3fb79455-50ee-44da-8c1b-03879eb92798",
+        "role_id": "e4496d64-a550-44e7-a0e3-89fab7411fa4",
+        "id": "c41a4ef0-587c-4c9e-9d62-946895d67f7f",
+        "created_at": "2026-10-13T19:14:28.490766",
+        "updated_at": "2026-10-13T19:14:28.490772",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "user_id": "Auditoría demo",
+          "role_id": "consulta_auditoria",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "user_id": "f3b7aabf-d714-4e40-9c26-0123e283a3a4",
+        "role_id": "4833e510-6ef9-4036-85f7-da3f7c6a38fa",
+        "id": "5caaba60-2a94-45f8-a33f-bd8c7c871561",
+        "created_at": "2026-10-13T19:14:28.484271",
+        "updated_at": "2026-10-13T19:14:28.484278",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "user_id": "Elena · demo",
+          "role_id": "integrante",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "user_id": "40dbdad4-3054-447d-baa2-f29eb8514a52",
+        "role_id": "c66e6771-6683-4c2b-b2d8-9fa6127321da",
+        "id": "7c963eef-bf95-474a-b456-70a0edb38aa6",
+        "created_at": "2026-10-13T19:14:28.479441",
+        "updated_at": "2026-10-13T19:14:28.479447",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "user_id": "Mateo · demo",
+          "role_id": "coordinador",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "user_id": "673e46f3-eea4-4077-860f-dda7da32789f",
+        "role_id": "1678ebb6-a7ee-479b-b212-5df07f8d1cc0",
+        "id": "97488ee4-d5e6-4bd2-89ec-6fbe2f000d41",
+        "created_at": "2026-10-13T19:14:28.473747",
+        "updated_at": "2026-10-13T19:14:28.473754",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "user_id": "Lucía · demo",
+          "role_id": "jefatura",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "user_id": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "role_id": "3f9c3ced-7eb9-4326-b467-11ad99bca54e",
+        "id": "a4c73ddb-8ddd-4110-a616-04d1411ef6f7",
+        "created_at": "2026-10-13T19:14:28.466598",
+        "updated_at": "2026-10-13T19:14:28.466610",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "user_id": "Administración demo",
+          "role_id": "administrador",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 5,
+    "page": 1,
+    "page_size": 20
+  },
+  "role-permissions": {
+    "items": [
+      {
+        "role_id": "e4496d64-a550-44e7-a0e3-89fab7411fa4",
+        "permission_id": "bcec8c9e-2f51-45e1-b73a-709b4e6cf66d",
+        "id": "d4ecaa58-b563-479c-ab89-1758036ac649",
+        "created_at": "2026-10-13T19:14:28.489699",
+        "updated_at": "2026-10-13T19:14:28.489701",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "consulta_auditoria",
+          "permission_id": "audit.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "e4496d64-a550-44e7-a0e3-89fab7411fa4",
+        "permission_id": "e4facebb-cc91-48cf-8332-e9ca1594dd58",
+        "id": "b9274ef6-7049-4d29-b945-c29e6aa6effc",
+        "created_at": "2026-10-13T19:14:28.489688",
+        "updated_at": "2026-10-13T19:14:28.489690",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "consulta_auditoria",
+          "permission_id": "reports.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "e4496d64-a550-44e7-a0e3-89fab7411fa4",
+        "permission_id": "eddc45ac-592e-4b10-a789-f5c477498aa0",
+        "id": "36421e57-e5c7-4a6a-b8bd-f5bea0d8ddd9",
+        "created_at": "2026-10-13T19:14:28.489676",
+        "updated_at": "2026-10-13T19:14:28.489678",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "consulta_auditoria",
+          "permission_id": "indicators.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "e4496d64-a550-44e7-a0e3-89fab7411fa4",
+        "permission_id": "d46f33e6-7398-4fd6-b485-9764b79cd2bb",
+        "id": "aa8508e7-f2bb-4720-ab44-be4e88aff7fe",
+        "created_at": "2026-10-13T19:14:28.489664",
+        "updated_at": "2026-10-13T19:14:28.489666",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "consulta_auditoria",
+          "permission_id": "services.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "e4496d64-a550-44e7-a0e3-89fab7411fa4",
+        "permission_id": "6aac8d10-9e5f-4c55-9035-6c5393eb4cb0",
+        "id": "fa373623-b831-4eb9-9b54-99ea8ac376fb",
+        "created_at": "2026-10-13T19:14:28.489652",
+        "updated_at": "2026-10-13T19:14:28.489654",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "consulta_auditoria",
+          "permission_id": "evidence.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "e4496d64-a550-44e7-a0e3-89fab7411fa4",
+        "permission_id": "46b538af-5ba3-4ae2-a8a7-d993fd3b1daf",
+        "id": "8564c508-e74a-4f6e-b7cf-fd03d1c19c64",
+        "created_at": "2026-10-13T19:14:28.489636",
+        "updated_at": "2026-10-13T19:14:28.489638",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "consulta_auditoria",
+          "permission_id": "meetings.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "e4496d64-a550-44e7-a0e3-89fab7411fa4",
+        "permission_id": "df482dee-b9ef-4156-bba8-f977e5569764",
+        "id": "0e008508-e976-41f2-bd22-6f28928ef200",
+        "created_at": "2026-10-13T19:14:28.489625",
+        "updated_at": "2026-10-13T19:14:28.489627",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "consulta_auditoria",
+          "permission_id": "cases.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "e4496d64-a550-44e7-a0e3-89fab7411fa4",
+        "permission_id": "8853b666-a85f-4e9d-bb79-e9889f6875b2",
+        "id": "b87e27bb-e22c-4d74-8eb7-d5ebd9c88952",
+        "created_at": "2026-10-13T19:14:28.489611",
+        "updated_at": "2026-10-13T19:14:28.489613",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "consulta_auditoria",
+          "permission_id": "documents.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "e4496d64-a550-44e7-a0e3-89fab7411fa4",
+        "permission_id": "02e18b03-431e-49c8-b672-f71b79213ec6",
+        "id": "ed94a1f9-650e-4c7e-bf59-ff892cc59568",
+        "created_at": "2026-10-13T19:14:28.489597",
+        "updated_at": "2026-10-13T19:14:28.489599",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "consulta_auditoria",
+          "permission_id": "tasks.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "e4496d64-a550-44e7-a0e3-89fab7411fa4",
+        "permission_id": "581b8a82-4fa8-424d-ac64-541bb41a2ed3",
+        "id": "a7296c8c-7695-4b0d-a398-070e744b6aa4",
+        "created_at": "2026-10-13T19:14:28.489579",
+        "updated_at": "2026-10-13T19:14:28.489584",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "consulta_auditoria",
+          "permission_id": "projects.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "4833e510-6ef9-4036-85f7-da3f7c6a38fa",
+        "permission_id": "e4facebb-cc91-48cf-8332-e9ca1594dd58",
+        "id": "7e14e809-ff03-465e-94a3-5788fa40f85f",
+        "created_at": "2026-10-13T19:14:28.482784",
+        "updated_at": "2026-10-13T19:14:28.482786",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "integrante",
+          "permission_id": "reports.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "4833e510-6ef9-4036-85f7-da3f7c6a38fa",
+        "permission_id": "b17f56a2-e7a2-4698-ae3e-3cb3ed830a84",
+        "id": "e99d79e1-bd18-4ea8-8df4-9536d063ade1",
+        "created_at": "2026-10-13T19:14:28.482773",
+        "updated_at": "2026-10-13T19:14:28.482775",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "integrante",
+          "permission_id": "indicators.write",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "4833e510-6ef9-4036-85f7-da3f7c6a38fa",
+        "permission_id": "eddc45ac-592e-4b10-a789-f5c477498aa0",
+        "id": "a1395cfd-c54b-421f-95f2-442463a7685d",
+        "created_at": "2026-10-13T19:14:28.482762",
+        "updated_at": "2026-10-13T19:14:28.482763",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "integrante",
+          "permission_id": "indicators.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "4833e510-6ef9-4036-85f7-da3f7c6a38fa",
+        "permission_id": "a0ffb185-3c76-4e75-82a3-3cf54ce65863",
+        "id": "67c9609c-43b3-48de-8933-ae123fa49d7c",
+        "created_at": "2026-10-13T19:14:28.482750",
+        "updated_at": "2026-10-13T19:14:28.482752",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "integrante",
+          "permission_id": "services.write",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "4833e510-6ef9-4036-85f7-da3f7c6a38fa",
+        "permission_id": "d46f33e6-7398-4fd6-b485-9764b79cd2bb",
+        "id": "7184c7b3-a6be-452c-a02e-0665efe04337",
+        "created_at": "2026-10-13T19:14:28.482739",
+        "updated_at": "2026-10-13T19:14:28.482740",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "integrante",
+          "permission_id": "services.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "4833e510-6ef9-4036-85f7-da3f7c6a38fa",
+        "permission_id": "795b1160-bcaa-4d58-a46b-c17fcc2762b4",
+        "id": "c1eb4186-1a4a-4701-bba9-ebe18fa34384",
+        "created_at": "2026-10-13T19:14:28.482727",
+        "updated_at": "2026-10-13T19:14:28.482729",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "integrante",
+          "permission_id": "evidence.write",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "4833e510-6ef9-4036-85f7-da3f7c6a38fa",
+        "permission_id": "6aac8d10-9e5f-4c55-9035-6c5393eb4cb0",
+        "id": "8598d62a-67d6-47a1-a546-bd46eb9e45b8",
+        "created_at": "2026-10-13T19:14:28.482716",
+        "updated_at": "2026-10-13T19:14:28.482717",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "integrante",
+          "permission_id": "evidence.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "4833e510-6ef9-4036-85f7-da3f7c6a38fa",
+        "permission_id": "9b9e48d9-46e4-4ca5-ba6f-6c5bd47c7f3e",
+        "id": "8327145c-9e6b-4813-a9af-b190dbeb7896",
+        "created_at": "2026-10-13T19:14:28.482704",
+        "updated_at": "2026-10-13T19:14:28.482706",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "integrante",
+          "permission_id": "meetings.write",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "4833e510-6ef9-4036-85f7-da3f7c6a38fa",
+        "permission_id": "46b538af-5ba3-4ae2-a8a7-d993fd3b1daf",
+        "id": "bae6cf63-4e34-4a84-a4ee-5d5e6ab5e821",
+        "created_at": "2026-10-13T19:14:28.482693",
+        "updated_at": "2026-10-13T19:14:28.482695",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "integrante",
+          "permission_id": "meetings.read",
+          "modified_by": "Administración demo"
+        }
+      },
+      {
+        "role_id": "4833e510-6ef9-4036-85f7-da3f7c6a38fa",
+        "permission_id": "b79dbf96-1d09-4630-9283-7d58dffc5fe5",
+        "id": "dc12e500-fa6b-4971-b1ba-7f048e57b3f1",
+        "created_at": "2026-10-13T19:14:28.482678",
+        "updated_at": "2026-10-13T19:14:28.482681",
+        "modified_by": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "revision": 1,
+        "_labels": {
+          "role_id": "integrante",
+          "permission_id": "cases.write",
+          "modified_by": "Administración demo"
+        }
+      }
+    ],
+    "total": 116,
+    "page": 1,
+    "page_size": 20
+  },
+  "audit": {
+    "items": [
+      {
+        "id": "03e248cd-12ae-44e7-a727-397fb38f8cee",
+        "created_at": "2026-10-13T19:14:28.609493",
+        "actor_id": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "entity": "demo",
+        "record_id": "db50b8f7-ac51-41f6-9a49-36c95564d1da",
+        "action": "seed",
+        "before": null,
+        "after": {
+          "notice": "Todos los registros son ficticios."
+        },
+        "_labels": {
+          "actor_id": "Administración demo"
+        }
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "import-batches": {
+    "items": [],
+    "total": 0,
+    "page": 1,
+    "page_size": 20
+  },
+  "import-sources": {
+    "items": [],
+    "total": 0,
+    "page": 1,
+    "page_size": 20
+  }
+}

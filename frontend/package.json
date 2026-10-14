@@ -1,0 +1,26 @@
+{
+  "name": "roadmap-ogc",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --configLoader native --host 127.0.0.1",
+    "build": "vite build --configLoader native",
+    "preview": "vite preview --configLoader native --host 127.0.0.1",
+    "test": "vitest run --configLoader native --pool=threads --maxWorkers=2"
+  },
+  "dependencies": {
+    "vue": "3.5.30",
+    "vue-router": "4.6.4",
+    "quasar": "2.18.7",
+    "@quasar/extras": "1.17.0"
+  },
+  "devDependencies": {
+    "vite": "8.0.16",
+    "@vitejs/plugin-vue": "6.0.5",
+    "@quasar/vite-plugin": "1.11.0",
+    "sass-embedded": "1.98.0",
+    "vitest": "4.0.18",
+    "jsdom": "28.1.0"
+  }
+}
