@@ -13,6 +13,7 @@ from app.bootstrap import initialize
 from app.security import permissions, roles, verify_password
 from app.web import mount_frontend
 from app.deploy import prepare
+from app.config import Settings, apply_render_origin
 
 
 class WebDeploymentTest(unittest.TestCase):
@@ -80,6 +81,27 @@ class BootstrapTest(unittest.TestCase):
 
 
 class FreeHostStartupTest(unittest.TestCase):
+    def test_actual_render_origin_sets_defaults_without_overriding_custom_domain(self):
+        config = Settings(_env_file=None, app_env='production')
+        apply_render_origin(config, 'https://assigned-example.onrender.com/')
+        self.assertEqual(config.origins, ['https://assigned-example.onrender.com'])
+        self.assertEqual(config.cloud_public_api_url, 'https://assigned-example.onrender.com/api')
+        custom = Settings(_env_file=None, app_env='production', frontend_origins='https://office.example.invalid',
+                          cloud_frontend_url='https://office.example.invalid', cloud_public_api_url='https://office.example.invalid/api')
+        apply_render_origin(custom, 'https://assigned-example.onrender.com')
+        self.assertEqual(custom.origins, ['https://office.example.invalid'])
+        self.assertEqual(custom.cloud_frontend_url, 'https://office.example.invalid')
+
+    def test_invalid_host_origin_cannot_replace_allowed_origins(self):
+        for origin in ('http://assigned-example.onrender.com', 'https://attacker.example.invalid',
+                       'https://assigned-example.onrender.com/path', 'https://user:secret@assigned-example.onrender.com'):
+            with self.subTest(origin=origin), self.assertRaises(RuntimeError):
+                apply_render_origin(Settings(_env_file=None, app_env='production'), origin)
+        development = Settings(_env_file=None, app_env='development')
+        previous = development.frontend_origins
+        apply_render_origin(development, 'https://assigned-example.onrender.com')
+        self.assertEqual(development.frontend_origins, previous)
+
     def test_initial_account_survives_restart_without_password_reset(self):
         engine = create_engine('sqlite://')
         Base.metadata.create_all(engine)

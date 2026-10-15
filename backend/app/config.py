@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import SecretStr
+import os
+from urllib.parse import urlsplit
 
 
 class Settings(BaseSettings):
@@ -36,7 +38,25 @@ class Settings(BaseSettings):
         return [x.strip() for x in self.frontend_origins.split(',') if x.strip()]
 
 
+def apply_render_origin(config, external_url):
+    """Use the actual origin assigned by Render when no origin was configured."""
+    if config.app_env != 'production' or not external_url:
+        return
+    parsed = urlsplit(external_url)
+    if (parsed.scheme != 'https' or not parsed.hostname or not parsed.hostname.endswith('.onrender.com')
+            or parsed.username or parsed.password or parsed.port or parsed.path not in ('', '/') or parsed.query or parsed.fragment):
+        raise RuntimeError('RENDER_EXTERNAL_URL debe ser el origen HTTPS asignado por Render.')
+    origin = external_url.rstrip('/')
+    if 'frontend_origins' not in config.model_fields_set or not config.frontend_origins.strip():
+        config.frontend_origins = origin
+    if not config.cloud_frontend_url:
+        config.cloud_frontend_url = origin
+    if not config.cloud_public_api_url:
+        config.cloud_public_api_url = origin + '/api'
+
+
 settings = Settings()
+apply_render_origin(settings, os.environ.get('RENDER_EXTERNAL_URL', ''))
 if settings.app_env == 'production':
     if settings.demo_mode or not settings.cookie_secure or not settings.database_url.startswith('postgresql'):
         raise RuntimeError('Producción requiere PostgreSQL, DEMO_MODE=false y COOKIE_SECURE=true.')
