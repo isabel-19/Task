@@ -8,6 +8,7 @@ import App from '../App.vue';
 import DashboardView from '../views/DashboardView.vue';
 import ModuleView from '../views/ModuleView.vue';
 import ReportsView from '../views/ReportsView.vue';
+import TasksView from '../views/TasksView.vue';
 vi.mock('../api', async (importOriginal) => ({ ...(await importOriginal()), api: vi.fn() }));
 import { api, session } from '../api';
 const mounted = [];
@@ -37,7 +38,14 @@ async function screen(module) {
     routes: modules.map((m) => ({
       path: m.path,
       meta: m,
-      component: m.path === '/' ? DashboardView : m.path === '/reportes' ? ReportsView : ModuleView,
+      component:
+        m.path === '/'
+          ? DashboardView
+          : m.path === '/reportes'
+            ? ReportsView
+            : m.path === '/tareas'
+              ? TasksView
+              : ModuleView,
     })),
   });
   await router.push(module.path);
@@ -71,7 +79,13 @@ describe('Once pantallas con el contrato real de la API de demostración', () =>
         ),
       );
       await vi.waitFor(() => expect(host.querySelectorAll('.nav-list .q-item')).toHaveLength(11));
-      if (module.resources.length) {
+      if (module.path === '/tareas') {
+        await vi.waitFor(() => expect(host.querySelector('tbody tr')).not.toBeNull());
+        expect(host.querySelector('.module-tabs')).toBeNull();
+        expect(host.textContent).not.toContain('Cierres autorizados');
+        expect(host.textContent).not.toContain('Asignaciones');
+        expect(host.querySelectorAll('thead th')).toHaveLength(7);
+      } else if (module.resources.length) {
         await vi.waitFor(() =>
           expect(host.querySelectorAll('.module-tabs>button:not(.q-btn)').length).toBe(
             module.resources.length,
@@ -113,19 +127,52 @@ describe('Once pantallas con el contrato real de la API de demostración', () =>
     );
     expect(host.querySelector('[role=alert]').textContent).toContain('Reintentar');
   });
-  it('filtra mi espacio y permite al jefe consultar el equipo', async () => {
+  it('la agenda consulta la semana visible, permite cambiarla y conserva el espacio personal', async () => {
+    const { host } = await screen(modules.find((module) => module.path === '/tareas'));
+    await vi.waitFor(() => expect(host.querySelector('tbody tr')).not.toBeNull());
+    [...host.querySelectorAll('button')]
+      .find((button) => button.textContent.includes('Agenda semanal'))
+      .click();
+    await vi.waitFor(() => expect(host.querySelectorAll('.agenda-day')).toHaveLength(7));
+    const request = () =>
+      new URL(
+        api.mock.calls.filter(([path]) => path.startsWith('/tasks?')).at(-1)[0],
+        'https://test.invalid',
+      );
+    const first = request();
+    expect(first.searchParams.get('scope')).toBe('received');
+    expect(first.searchParams.get('from')).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(first.searchParams.get('to')).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(first.searchParams.get('page_size')).toBe('100');
+    host.querySelector('button[aria-label="Semana siguiente"]').click();
+    await vi.waitFor(() =>
+      expect(request().searchParams.get('from')).not.toBe(first.searchParams.get('from')),
+    );
+    [...host.querySelectorAll('button')]
+      .find((button) => button.textContent.trim() === 'Hoy')
+      .click();
+    await vi.waitFor(() =>
+      expect(request().searchParams.get('from')).toBe(first.searchParams.get('from')),
+    );
+    [...host.querySelectorAll('button')]
+      .find((button) => button.textContent.includes('Lista'))
+      .click();
+    await vi.waitFor(() => expect(host.querySelector('tbody tr')).not.toBeNull());
+    expect(request().searchParams.has('from')).toBe(false);
+    expect(request().searchParams.get('page_size')).toBe('20');
+  });
+  it('abre las tareas recibidas y permite consultar las asignadas y las del equipo según permisos', async () => {
     const { host } = await screen(modules.find((m) => m.path === '/tareas'));
     await vi.waitFor(() => expect(host.querySelector('tbody tr')).not.toBeNull());
     expect(
       api.mock.calls.some(
-        ([path]) => path.startsWith('/tasks?') && path.includes('scope=personal'),
+        ([path]) => path.startsWith('/tasks?') && path.includes('scope=received'),
       ),
     ).toBe(true);
     for (const [label, scope] of [
-      ['Me asignaron', 'received'],
-      ['Asigné', 'assigned'],
-      ['En conjunto', 'joint'],
-      ['Equipo', 'team'],
+      ['Tareas que asigné', 'assigned'],
+      ['Todas las tareas', 'team'],
+      ['Mis tareas', 'received'],
     ]) {
       [...host.querySelectorAll('.segmented button')]
         .find((b) => b.textContent.trim() === label)
@@ -142,8 +189,60 @@ describe('Once pantallas con el contrato real de la API de demostración', () =>
     await nextTick();
     expect(
       [...host.querySelectorAll('.segmented button')].some(
-        (b) => b.textContent.trim() === 'Equipo',
+        (b) => b.textContent.trim() === 'Todas las tareas',
       ),
     ).toBe(false);
+  });
+  it('notifica evidencia pendiente, abre la tarea desde la campana y retira el aviso al revisarse', async () => {
+    const { host, router } = await screen(modules.find((module) => module.path === '/tareas'));
+    await vi.waitFor(() => expect(host.querySelector('tbody tr')).not.toBeNull());
+    const original = api.getMockImplementation();
+    const task = fixture.tasks.items[0];
+    let pending = true;
+    api.mockImplementation((path) =>
+      path === '/alerts'
+        ? Promise.resolve(
+            pending
+              ? [
+                  {
+                    id: 'aporte-pendiente',
+                    task_id: task.id,
+                    kind: 'task_review',
+                    entity: 'tasks',
+                    title: task.title,
+                    author: 'Persona de prueba',
+                    progress: 45,
+                    label: 'Evidencia pendiente de revisión',
+                    overdue: false,
+                  },
+                ]
+              : [],
+          )
+        : original(path),
+    );
+    window.dispatchEvent(new Event('ogc:task-review-changed'));
+    await vi.waitFor(() => expect(host.querySelector('.topbar .q-badge')?.textContent).toBe('1'));
+    host.querySelector('button[aria-label="Ver alertas"]').click();
+    await vi.waitFor(() =>
+      expect(document.querySelector('.alerts-drawer')?.textContent).toContain('Persona de prueba'),
+    );
+    expect(document.querySelector('.alerts-drawer').textContent).toContain('Por revisar');
+    document.querySelector('.alerts-drawer .q-item').click();
+    await vi.waitFor(() => expect(router.currentRoute.value.query.id).toBe(task.id));
+    expect(router.currentRoute.value.query.scope).toBe('review');
+    expect(router.currentRoute.value.query.review).toBe('aporte-pendiente');
+    await vi.waitFor(() =>
+      expect(
+        api.mock.calls.some(
+          ([path]) =>
+            path.startsWith('/tasks?') &&
+            path.includes('pending_review=true') &&
+            path.includes('scope=team'),
+        ),
+      ).toBe(true),
+    );
+    pending = false;
+    window.dispatchEvent(new Event('ogc:task-review-changed'));
+    await vi.waitFor(() => expect(host.querySelector('.topbar .q-badge')).toBeNull());
   });
 });

@@ -40,7 +40,19 @@ def task_input(db, user, raw, existing=None):
         raise HTTPException(422,'Indica un plazo válido que no sea anterior al inicio.')
     if not existing:raw.setdefault('start_date',start)
     if not axis_id:
-        return raw
+        # Keep existing classification and linked projects when editing. A direct
+        # assignment needs no project or theme selected by the person creating it.
+        if existing or raw.get('project_id') or raw.get('parent_id'):
+            if not existing and raw.get('parent_id') and not raw.get('project_id'):
+                parent=get_record(db,m.Task,raw['parent_id']);require_access(db,user,parent)
+                raw['project_id']=parent.project_id
+            return raw
+        axis=db.scalar(select(m.Axis).where(m.Axis.name=='Tareas generales'))
+        if not axis:
+            axis=m.Axis(name='Tareas generales',modified_by=user.id)
+            db.add(axis)
+            audit(db,user,'axes',axis,'group_direct_tasks')
+        axis_id=axis.id
     if not isinstance(axis_id,str):raise HTTPException(422,'Selecciona una temática válida.')
     axis=get_record(db,m.Axis,axis_id)
     pinned=raw.get('project_id')

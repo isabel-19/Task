@@ -4,6 +4,7 @@
   import { api, query, session, can } from '../api';
   import FilterBar from '../components/FilterBar.vue';
   import StatusBadge from '../components/StatusBadge.vue';
+  import RouteMotif from '../components/RouteMotif.vue';
   import { dateLabel, entityRoutes, human } from '../modules';
   const router = useRouter(),
     data = ref(null),
@@ -71,10 +72,10 @@
           {
             label: 'Documentos por atender',
             value: data.value.pending_documents,
-            note: 'Pendientes de aprobación',
+            note: 'Recibidos pendientes de atención',
             icon: 'description',
             color: 'violet',
-            action: { path: '/registro', query: { approval_status: 'pendiente' } },
+            action: { path: '/registro', query: { section: 'recibidos', approval_status: 'pendiente', attended: 'false' } },
           },
         ]
       : [],
@@ -93,22 +94,25 @@
 </script>
 <template>
   <q-page class="content-page dashboard-page">
-    <div class="page-heading">
+    <div class="page-heading dashboard-heading">
       <div>
         <span class="eyebrow">PANORAMA GENERAL</span>
         <h1>Panel de seguimiento<span class="title-dot">.</span></h1>
-        <p>Todo lo que importa, en un mismo lugar.</p>
+        <p>Hola, {{ session.user?.name.split(' ')[0] }}. Sigue tus compromisos y el avance de tu equipo.</p>
       </div>
-      <div class="date-pill"><q-icon name="calendar_today" size="17px" />{{ today }}</div>
+      <div class="dashboard-heading-aside">
+        <div class="date-pill"><q-icon name="calendar_today" size="17px" />{{ today }}</div>
+        <RouteMotif />
+      </div>
     </div>
     <div
       v-if="can(['tasks.supervise', 'tasks.team_read', 'admin.write'])"
       class="segmented q-mb-md"
     >
-      <button :class="{ active: filters.scope === 'personal' }" @click="filters.scope = 'personal'">
+      <button :class="{ active: filters.scope === 'personal' }" :aria-pressed="filters.scope === 'personal'" @click="filters.scope = 'personal'">
         Mi espacio
       </button>
-      <button :class="{ active: filters.scope === 'team' }" @click="filters.scope = 'team'">
+      <button :class="{ active: filters.scope === 'team' }" :aria-pressed="filters.scope === 'team'" @click="filters.scope = 'team'">
         Equipo
       </button>
     </div>
@@ -130,7 +134,7 @@
     </div>
     <template v-if="data">
       <div class="metrics-grid">
-        <button v-for="card in cards" :key="card.label" class="metric-card" @click="openCard(card)">
+        <button v-for="card in cards" :key="card.label" class="metric-card" :class="'metric-' + card.color" @click="openCard(card)">
           <div class="metric-top">
             <span>{{ card.label }}</span>
             <div class="metric-icon" :class="card.color">

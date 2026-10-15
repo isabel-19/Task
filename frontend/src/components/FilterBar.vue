@@ -4,6 +4,7 @@
     lookups: Object,
     search: { type: Boolean, default: true },
     expanded: { type: Boolean, default: false },
+    available: { type: Array, default: () => ['axis_id', 'process_id', 'responsible_id'] },
   });
   const emit = defineEmits(['update:modelValue']);
   function set(key, value, current) {
@@ -25,6 +26,7 @@
       ><template #prepend><q-icon name="search" size="20px" /></template
     ></q-input>
     <q-select
+      v-if="available.includes('axis_id')"
       outlined
       dense
       clearable
@@ -42,6 +44,7 @@
       clearable
       emit-value
       map-options
+      v-if="available.includes('responsible_id')"
       :model-value="modelValue.responsible_id || null"
       :options="lookups.users || []"
       label="Responsables"
@@ -85,6 +88,7 @@
         clearable
         emit-value
         map-options
+        v-if="available.includes('process_id')"
         :model-value="modelValue.process_id || null"
         :options="lookups.processes || []"
         label="Proceso"

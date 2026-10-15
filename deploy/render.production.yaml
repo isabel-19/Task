@@ -1,0 +1,40 @@
+# Paid production alternative. Review cost and connect the repository before applying.
+# The root render.yaml is the selected free alternative using Supabase Storage.
+services:
+  - type: web
+    name: roadmap-ogc
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    preDeployCommand: python -m alembic upgrade head
+    disk:
+      name: roadmap-evidence
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DEMO_MODE
+        value: false
+      - key: COOKIE_SECURE
+        value: true
+      - key: DATABASE_URL
+        sync: false
+      - key: FRONTEND_ORIGINS
+        sync: false
+      - key: CLOUD_PUBLIC_API_URL
+        sync: false
+      - key: CLOUD_FRONTEND_URL
+        sync: false
+      - key: CLOUD_TOKEN_KEY
+        sync: false
+      - key: EVIDENCE_STORAGE_DIR
+        value: /var/data/evidence
+      - key: EVIDENCE_UPLOADS_ENABLED
+        value: true
+      - key: IMPORTS_ENABLED
+        value: false
+      - key: SESSION_HOURS
+        value: 8

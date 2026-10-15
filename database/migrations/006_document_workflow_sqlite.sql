@@ -1,0 +1,10 @@
+ALTER TABLE documents ADD COLUMN intake_format VARCHAR(30);
+ALTER TABLE documents ADD COLUMN notebook_number VARCHAR(80);
+ALTER TABLE documents ADD COLUMN reference_text TEXT;
+ALTER TABLE documents ADD COLUMN priority VARCHAR(30);
+ALTER TABLE documents ADD COLUMN followup_frequency VARCHAR(30);
+ALTER TABLE documents ADD COLUMN receipt_number VARCHAR(120);
+ALTER TABLE documents ADD COLUMN comments TEXT;
+ALTER TABLE documents ADD COLUMN email_url TEXT;
+ALTER TABLE documents ADD COLUMN attended BOOLEAN NOT NULL DEFAULT 0;
+ALTER TABLE documents ADD COLUMN drafting_assistant_id VARCHAR(36) REFERENCES users(id) ON DELETE RESTRICT;

@@ -6,6 +6,7 @@ import secrets
 from datetime import date, datetime, timedelta
 from fastapi import FastAPI, Depends, HTTPException, Request, Response, Query
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select, func, delete, update, inspect
@@ -14,11 +15,14 @@ from . import models as m
 from .db import get_db, engine
 from .config import settings
 from .security import current_user, permissions, roles, require, new_session, digest, hash_password, verify_password
-from .task_policy import supervises, team_reader, task_scope, require_access, check_assignee, progress_summary, sync_progress
+from .task_policy import supervises, team_reader, task_scope, require_access, check_assignee, progress_summary, sync_progress, pending_reviews_statement
 from .participant_routes import router as participant_router, enrollment_info
 from .catalog import RESOURCES, READ_ONLY, LABELS, OPTIONS, STATUS_OPTIONS
 from .service import resource, serialize, get_record, editable_columns, validate_data, check_business, check_ownership, filtered, enrich, audit
 from .task_form import task_input, form_choices
+from .validation import validation_details
+from .document_registry import document_input, next_number, save_link, document_choices, document_fields
+from .document_workflow import DOCUMENT_STATES, SEND_STATES, validate_workflow, is_sent
 
 app = FastAPI(title='ROADMAP OGC', version='0.1.0', docs_url='/api/docs', openapi_url='/api/openapi.json')
 app.include_router(participant_router, prefix='/api')
@@ -28,6 +32,9 @@ app.add_middleware(CORSMiddleware, allow_origins=settings.origins, allow_credent
 
 @app.middleware('http')
 async def security_headers(request, call_next):
+    if request.url.path.startswith('/api/cloud/') and request.url.path.endswith('/callback'):
+        request.state.oauth_query = request.query_params
+        request.scope['query_string'] = b''
     response = await call_next(request)
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Referrer-Policy'] = 'no-referrer'
@@ -38,6 +45,11 @@ async def security_headers(request, call_next):
 @app.exception_handler(IntegrityError)
 async def database_error(_, error):
     return JSONResponse(status_code=409, content={'detail': 'El registro está duplicado, tiene relaciones inexistentes o incumple una restricción.'})
+
+
+@app.exception_handler(RequestValidationError)
+async def input_error(_, error):
+    return JSONResponse(status_code=422, content={'detail': validation_details(error.errors())})
 
 
 @app.get('/api/health')
@@ -122,9 +134,25 @@ def metadata(user=Depends(current_user), db=Depends(get_db)):
                            'default': c.default.arg if c.default and c.default.is_scalar else None})
         if name == 'users':
             fields.append({'key': 'password', 'label': 'Contraseña inicial / nueva', 'type': 'password', 'required': False})
+        if name == 'documents':
+            for field in fields:
+                if field['key'] == 'number':
+                    field['required'] = False
+                if field['key'] == 'preparation_status':
+                    field['options'] = DOCUMENT_STATES
+                if field['key'] == 'priority':
+                    field['options'] = ['baja', 'media', 'alta']
+            fields.extend([
+                {'key': 'url', 'label': 'Enlace del documento', 'type': 'text', 'required': False},
+                {'key': 'access_confirmed', 'label': 'El equipo OGC puede abrir el enlace', 'type': 'boolean', 'required': False},
+            ])
         items[name] = {'label': label, 'module': module, 'fields': fields, 'readonly': name in READ_ONLY,
                        'can_write': module + '.write' in allowed and name not in READ_ONLY,
+                       'can_export': 'reports.read' in allowed,
                        'can_validate': module + '.validate' in allowed}
+        if name == 'tasks':
+            from .evidence_storage import upload_limit, TYPES
+            items[name]['evidence_upload'] = {'max_bytes': upload_limit(), 'extensions': list(TYPES), 'enabled': settings.evidence_uploads_enabled}
     return items
 
 
@@ -151,6 +179,8 @@ def lookups(user=Depends(current_user), db=Depends(get_db)):
     result['users'] = [{'value': r.id, 'label': r.name} for r in db.scalars(select(m.User).where(m.User.active.is_(True)).order_by(m.User.name))]
     result['task-members'] = [{'value': r.id, 'label': r.name} for r in db.scalars(select(m.User).where(m.User.active.is_(True)).order_by(m.User.name)) if 'tasks.write' in permissions(db, r)]
     result.update(form_choices(db))
+    if 'documents.read' in permissions(db, user):
+        result.update(document_choices(db))
     return result
 
 
@@ -180,7 +210,7 @@ def dashboard(request: Request, user=Depends(current_user), db=Depends(get_db)):
         if assigned:
             by_axis.append({'id': axis.id, 'name': axis.name, 'color': axis.color, 'count': len(assigned), 'progress': round(sum(summaries[t.id]['validated_progress'] for t in assigned) / len(assigned))})
     return {'pending': len(pending), 'overdue': len(overdue), 'upcoming': len(upcoming),
-            'pending_documents': sum(d.approval_status == 'pendiente' for d in documents),
+            'pending_documents': sum(d.section == 'recibidos' and not d.attended and d.approval_status == 'pendiente' for d in documents),
             'pending_agreements': sum(a.status != 'cumplido' for a in agreements),
             'progress': round(sum(summaries[t.id]['validated_progress'] for t in tasks) / len(tasks)) if tasks else 0,
             'task_count': len(tasks), 'closed': sum(t.status == 'cerrada' for t in tasks),
@@ -205,7 +235,19 @@ def alerts(request: Request, user=Depends(current_user), db=Depends(get_db)):
                 continue
             result.append({'entity': name, 'id': record.id, 'title': record.title, 'due_date': record.due_date,
                            'overdue': record.due_date < date.today(), 'label': label})
-    return sorted(result, key=lambda a: a['due_date'])
+    review_alerts = []
+    allowed = permissions(db, user)
+    if supervises(db, user) and {'tasks.read', 'tasks.validate'} <= allowed:
+        # Jefatura receives review work regardless of personal scope or deadline.
+        for item in db.scalars(pending_reviews_statement(user.id).order_by(m.TaskUpdate.created_at.desc(), m.TaskUpdate.id)):
+            task = db.get(m.Task, item.task_id)
+            author = db.get(m.User, item.author_id)
+            review_alerts.append({'entity': 'tasks', 'id': item.id, 'task_id': task.id,
+                                  'kind': 'task_review', 'title': task.title, 'author': author.name,
+                                  'progress': item.progress, 'submitted_at': serialize(item)['created_at'],
+                                  'due_date': task.due_date, 'overdue': False,
+                                  'label': 'Evidencia pendiente de revisión'})
+    return review_alerts + sorted(result, key=lambda a: a['due_date'])
 
 
 @app.get('/api/reports/{name}.csv')
@@ -213,15 +255,19 @@ def report(name: str, request: Request, user=Depends(current_user), db=Depends(g
     require(db, user, 'reports.read')
     model, module, _ = resource(name)
     require(db, user, module + '.read')
-    if name in {'import-batches'}:
-        raise HTTPException(403, 'Exportación no disponible para este recurso.')
     records = list(db.scalars(filtered(db, name, dict(request.query_params), user).order_by(model.created_at.desc()).limit(10001)))
     if len(records) > 10000:
         raise HTTPException(422, 'Reduce el rango del reporte a un máximo de 10 000 registros.')
     rows = [enrich(db, name, r, user) for r in records]
     fields = [c.key for c in model.__table__.columns if c.key != 'password_hash']
+    if name == 'import-batches':
+        fields = ['filename', 'sheet', 'entity', 'status', 'created_at', 'sha256']
     if name == 'tasks':
         fields.extend(['participants', 'reported_progress', 'validated_progress'])
+    if name == 'documents':
+        fields = [key for key in fields if key not in ['approval_status', 'preparation_status']]
+        fields.append('document_status')
+        fields.extend(['url', 'version', 'access_confirmed', 'days_remaining', 'deadline_status'])
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([LABELS.get(key, key) for key in fields])
@@ -251,6 +297,10 @@ def touch(db, user, name, record, action, before):
 
 from .task_routes import router as task_router
 app.include_router(task_router, prefix='/api')
+from .evidence_routes import router as evidence_file_router
+app.include_router(evidence_file_router, prefix='/api')
+from .cloud_routes import router as cloud_router
+app.include_router(cloud_router, prefix='/api')
 
 
 class CloseInput(StrictInput):
@@ -371,7 +421,7 @@ def stage(identifier: str, body: StageInput, user=Depends(current_user), db=Depe
     db.add(item)
     audit(db, user, 'case-events', item, 'stage')
     touch(db, user, 'cases', case, 'stage', before)
-    if body.status in {'aprobado', 'atendido'}:
+    if body.status in {'aprobado', 'atendido'} and db.get(m.Document, case.document_id).section == 'recibidos':
         document = get_record(db, m.Document, case.document_id, True)
         prior = serialize(document)
         document.approval_status = body.status
@@ -430,16 +480,26 @@ def review_deliverable(identifier: str, body: ReviewInput, user=Depends(current_
     return enrich(db, 'deliverables', item)
 
 
+class DocumentSendInput(RevisionInput):
+    status: str
+    sent_date: date
+
+
 @app.post('/api/documents/{identifier}/send')
-def send_document(identifier: str, body: RevisionInput, user=Depends(current_user), db=Depends(get_db)):
+def send_document(identifier: str, body: DocumentSendInput, user=Depends(current_user), db=Depends(get_db)):
     require(db, user, 'documents.write')
     document = get_record(db, m.Document, identifier, True)
     check_ownership(db, user, 'documents', document)
     revision(document, body.revision)
+    if document.section != 'emitidos':
+        raise HTTPException(422, 'Registra el envío desde un documento emitido.')
+    if body.status not in [*SEND_STATES, 'compartido', 'enviado']:
+        raise HTTPException(422, 'Selecciona el medio de envío del documento.')
+    validate_workflow(db, {'preparation_status': body.status, 'sent_date': body.sent_date}, document)
     if document.sent_date:
         raise HTTPException(409, 'Este documento ya fue remitido.')
     before = serialize(document)
-    document.preparation_status, document.sent_date = 'remitido', date.today()
+    document.preparation_status, document.sent_date = body.status, body.sent_date
     touch(db, user, 'documents', document, 'send', before)
     db.commit()
     return enrich(db, 'documents', document)
@@ -472,6 +532,13 @@ def validate_criterion(identifier: str, body: RevisionInput, user=Depends(curren
     touch(db, user, 'criteria', item, 'validate', prior)
     db.commit()
     return serialize(item)
+
+
+@app.get('/api/documents/next-number')
+def preview_document_number(document_type_id: str, year: int = Query(..., ge=1, le=9999),
+                            section: str = 'emitidos', user=Depends(current_user), db=Depends(get_db)):
+    require(db, user, 'documents.write')
+    return next_number(db, document_type_id, year, section)
 
 
 @app.get('/api/{name}')
@@ -516,6 +583,10 @@ def password_input(name, body, creating=False):
 def create_record(name: str, body: dict, user=Depends(current_user), db=Depends(get_db)):
     model = writable(db, user, name)
     raw, password = password_input(name, body, True)
+    automatic, document_link = False, (None, False)
+    if name == 'documents':
+        raw, automatic, document_link = document_input(raw)
+        raw = document_fields(db, raw)
     member_ids = raw.pop('member_ids', []) if name == 'tasks' else []
     if not isinstance(member_ids, list) or len(member_ids) > 1000 or any(not isinstance(v, str) for v in member_ids):
         raise HTTPException(422, 'Selecciona una lista de integrantes válida.')
@@ -529,6 +600,11 @@ def create_record(name: str, body: dict, user=Depends(current_user), db=Depends(
         data['assigned_by'] = user.id
     check_ownership(db, user, name, data=data)
     check_business(db, name, data)
+    if automatic:
+        assigned = next_number(db, data['document_type_id'], data['year'], data['section'], reserve=True)
+        if not assigned['automatic']:
+            raise HTTPException(422, 'Este tipo documental usa su número o código original. Escríbelo en el formulario.')
+        data['number'] = assigned['number']
     if password:
         data['password_hash'] = password
     if name in {'document-versions', 'evidence-versions', 'evidence'}:
@@ -536,6 +612,8 @@ def create_record(name: str, body: dict, user=Depends(current_user), db=Depends(
     record = model(**data, modified_by=user.id)
     db.add(record)
     audit(db, user, name, record, 'create')
+    if name == 'documents':
+        save_link(db, user, record, document_link)
     if name == 'tasks':
         for identifier in set(member_ids) - {record.responsible_id}:
             assignment = m.TaskAssignment(task_id=record.id, user_id=identifier, assigned_by=user.id, modified_by=user.id)
@@ -555,6 +633,10 @@ def edit_record(name: str, identifier: str, body: dict, user=Depends(current_use
     model = writable(db, user, name)
     record = get_record(db, model, identifier, True)
     raw, password = password_input(name, body)
+    document_link = (None, False)
+    if name == 'documents':
+        raw, _, document_link = document_input(raw, record)
+        raw = document_fields(db, raw, record)
     expected = raw.pop('revision', None)
     if not isinstance(expected, int):
         raise HTTPException(422, 'La edición requiere la revisión actual del registro.')
@@ -591,6 +673,8 @@ def edit_record(name: str, identifier: str, body: dict, user=Depends(current_use
     if name == 'users' and (password or data.get('active') is False):
         db.execute(delete(m.LoginSession).where(m.LoginSession.user_id == record.id))
     audit(db, user, name, record, 'update', before)
+    if name == 'documents':
+        save_link(db, user, record, document_link)
     db.commit()
     return enrich(db, name, record, user)
 
@@ -602,12 +686,12 @@ def revoke(name: str, identifier: str, user=Depends(current_user), db=Depends(ge
         raise HTTPException(404, 'Asignación no encontrada.')
     model, _, _ = resource(name)
     record = get_record(db, model, identifier, True)
-    admin = db.scalar(select(m.Role).where(m.Role.name == 'administrador'))
-    if record.role_id == admin.id:
+    target_role = get_record(db, m.Role, record.role_id)
+    if target_role.name in {'administrador', 'jefatura'}:
         if name == 'role-permissions':
-            raise HTTPException(422, 'No se pueden retirar permisos al rol de recuperación administrador.')
+            raise HTTPException(422, 'No se pueden retirar permisos a los roles de administración y jefatura.')
         if record.user_id == user.id:
-            raise HTTPException(422, 'No puedes retirar tu propio rol administrador.')
+            raise HTTPException(422, 'No puedes retirar tu propio rol de administración o jefatura.')
     prior = serialize(record)
     db.add(m.Audit(actor_id=user.id, entity=name, record_id=record.id, action='revoke', before=prior, after=None))
     if name == 'user-roles':
@@ -620,3 +704,7 @@ def revoke(name: str, identifier: str, user=Depends(current_user), db=Depends(ge
 # Import endpoints are registered before the generic POST path is matched by their depth.
 from .importer import router as import_router
 app.include_router(import_router, prefix='/api/import')
+
+# Register last so every API route keeps its authentication and validation.
+from .web import mount_frontend
+mount_frontend(app, settings.frontend_dist)

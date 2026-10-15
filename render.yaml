@@ -1,18 +1,19 @@
+# Free app with persistent data and private files in a separate Supabase project.
 services:
   - type: web
-    name: roadmap-ogc-api-test
-    runtime: python
+    name: roadmap-ogc
+    runtime: docker
     plan: free
-    buildCommand: pip install -r backend/requirements-postgres.txt
-    startCommand: cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL
         sync: false
       - key: APP_ENV
-        value: staging
+        value: production
       - key: DEMO_MODE
-        value: true
+        value: false
       - key: COOKIE_SECURE
         value: true
       - key: FRONTEND_ORIGINS
@@ -21,3 +22,31 @@ services:
         value: 8
       - key: IMPORTS_ENABLED
         value: false
+      - key: CLOUD_PUBLIC_API_URL
+        sync: false
+      - key: CLOUD_FRONTEND_URL
+        sync: false
+      - key: CLOUD_TOKEN_KEY
+        sync: false
+      - key: EVIDENCE_STORAGE_BACKEND
+        value: supabase
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: roadmap-evidence
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: EVIDENCE_UPLOADS_ENABLED
+        value: true
+      - key: EVIDENCE_MAX_UPLOAD_MB
+        value: 20
+      - key: RUN_MIGRATIONS
+        value: true
+      - key: MIGRATION_DATABASE_URL
+        sync: false
+      - key: BOOTSTRAP_EMAIL
+        sync: false
+      - key: BOOTSTRAP_NAME
+        value: Jefatura OGC
+      - key: BOOTSTRAP_PASSWORD
+        sync: false

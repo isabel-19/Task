@@ -1,5 +1,7 @@
 # Roles y avances compartidos
 
+Actualización del 14 de octubre: la interfaz de Tareas se simplificó a asignación individual y evidencia desde la ficha. Consulta [el flujo actual](asignacion-simple.md). La descripción de botones de esta revisión anterior es histórica; los permisos y aportes de tareas grupales existentes se conservan.
+
 Referencia leída sin modificar: `ROADMAP OGC 2026 v2.xlsx`, SHA-256 `b65180d05ee01693184bd21e09c55cea70345eac54aedd863d3419fdbc3990c1`. Se revisaron las 27 hojas del libro local. En esta revisión inicial no se importaron datos; después el usuario autorizó el [registro local de participantes](participantes.md). Las tareas y evidencias institucionales no se importaron.
 
 ## Estructura observada

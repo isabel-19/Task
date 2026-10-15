@@ -49,7 +49,7 @@ erDiagram
 
 Una validación pertenece a una **versión** de evidencia; subir una nueva versión obliga a validarla antes del cierre. El cierre guarda la versión utilizada o una justificación explícitamente autorizada por jefatura/administración. Se exige revisión y dependencias cerradas. Los avances y comentarios son registros históricos.
 
-En documentos se separan `preparation_status` de `approval_status`. Las derivaciones cambian la dependencia externa, no el responsable OGC. Aprobaciones y atención se registran mediante actuaciones autorizadas. Las conformidades OS requieren documento de presentación y revisor con permiso de validación.
+En documentos emitidos, `preparation_status` registra preparación y envío digital, físico o ambos, con `sent_date`. La interfaz muestra `document_status` y no solicita aprobar cartas. `approval_status` se conserva para la atención de documentos recibidos y el historial previo. Las derivaciones cambian la dependencia externa, no el responsable OGC. Las conformidades OS requieren documento de presentación y revisor con permiso de validación. La comparación con cada campo del Excel está en [Revisión del registro](revision-campos-registro-2026-10-14.md).
 
 Modelos y criterios de calidad empiezan en `pendiente_validacion`; el catálogo de demostración es ficticio, no una transcripción de normativa. Debe validarse fuente, versión y aplicabilidad antes de activar estándares institucionales.
 

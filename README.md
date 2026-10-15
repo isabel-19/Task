@@ -51,8 +51,16 @@ npm run build
 
 Documentación: [navegación](docs/navegacion.md), [modelo de datos](docs/modelo-datos.md), [manual](docs/manual.md), [operación](docs/operacion.md), [importación](docs/importacion.md), [estado y pendientes](TASK.md). El registro de verificaciones distingue las pruebas locales de la validación PostgreSQL y del despliegue.
 
+Registro Digital permite pegar el enlace al crear o editar documentos y asignar correlativos por tipo y año. Consulta [enlaces y numeración](docs/registro-digital.md) para continuar las series de un registro existente.
+
 Para el flujo actualizado de jefe/integrantes, tareas grupales y evidencias, consulta [roles y avances](docs/roles-y-avances.md) y [el manual](docs/manual.md). La vista predeterminada de tareas es personal; jefatura puede elegir «Equipo».
 
-El registro de participantes del Excel y sus accesos locales se explica en [participantes](docs/participantes.md). En la instalación local ya aparecen en Tareas → Participantes del equipo y en los selectores de asignación.
+El registro de participantes del Excel y sus accesos locales se explica en [participantes](docs/participantes.md). En la instalación local aparecen en el selector de responsable al asignar una tarea.
 
-La asignación usa un formulario reducido con temática, actividad, responsable, apoyo y plazo. Oficina y observaciones son opcionales; los desplegables siguen el libro. Consulta [asignación simple](docs/asignacion-simple.md).
+Tareas y responsables permite asignar a una o varias personas: tarea, personas asignadas, fecha límite e instrucciones opcionales. El responsable consulta «Mis tareas» y añade sus avances y enlaces desde «Añadir evidencia». El envío queda pendiente de revisión por otra persona de jefatura. Lista y agenda semanal permiten abrir documentos directamente; la ficha separa entrega y respuesta. Consulta [asignación simple](docs/asignacion-simple.md) y [agenda, evidencias y azul institucional](docs/agenda-evidencias-azul.md).
+
+También se pueden adjuntar archivos del equipo, hasta 20 MB por envío: PDF, imágenes PNG/JPG/WEBP, DOCX, XLSX, TXT y CSV. El previsualizador integrado permite leer PDF, imágenes y el contenido de Word/Excel; conserva la descarga del original. Requiere instalar las dependencias y aplicar Alembic hasta 008. Consulta [uso](docs/manual.md) y [almacenamiento privado y respaldo](docs/operacion.md).
+
+Google y Microsoft se vinculan por usuario desde Cuentas vinculadas. Jefatura habilita una sola vez las aplicaciones OAuth desde el panel de configuración general; después, cualquier usuario con permiso para trabajar en tareas puede autorizar su propia cuenta. La selección usa Google Picker o los archivos de OneDrive; la entrega conserva una copia privada para revisión. Requiere Alembic hasta 010 y registrar las aplicaciones externas antes de conectar cuentas reales. Consulta la [activación de Google y Microsoft](docs/cuentas-google-microsoft.md).
+
+La publicación elegida usa Render Free para la interfaz/API y Supabase Free para PostgreSQL y evidencias privadas, sin guardar archivos en el disco temporal de Render. Se incluyen contenedor, migraciones al arranque y alta inicial de jefatura sin cuentas demo. Consulta [publicación web](docs/publicacion-web.md). El despliegue público y PostgreSQL continúan pendientes de conexión al alojamiento y validación real.

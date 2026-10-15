@@ -1,12 +1,30 @@
 """Task membership, personal visibility and append-only progress validation."""
 from fastapi import HTTPException
 from sqlalchemy import select, or_, and_, func
+from sqlalchemy.orm import aliased
 from . import models as m
 from .security import permissions
 
 
 def supervises(db, user):
     return bool(permissions(db, user) & {'tasks.supervise', 'admin.write'})
+
+
+def pending_reviews_statement(reviewer_id=None):
+    """Durable review queue: latest evidenced report per person, until reviewed."""
+    newer = aliased(m.TaskUpdate)
+    later = select(newer.id).where(
+        newer.task_id == m.TaskUpdate.task_id, newer.author_id == m.TaskUpdate.author_id,
+        newer.kind == 'avance',
+        or_(newer.created_at > m.TaskUpdate.created_at,
+            and_(newer.created_at == m.TaskUpdate.created_at, newer.id < m.TaskUpdate.id)),
+    ).exists()
+    reviewed = select(m.TaskUpdateReview.id).where(m.TaskUpdateReview.task_update_id == m.TaskUpdate.id).exists()
+    statement = select(m.TaskUpdate).join(m.Task, m.Task.id == m.TaskUpdate.task_id).where(
+        m.Task.status != 'cerrada', m.TaskUpdate.kind == 'avance',
+        m.TaskUpdate.evidence_version_id.is_not(None), ~reviewed, ~later,
+    )
+    return statement.where(m.TaskUpdate.author_id != reviewer_id) if reviewer_id else statement
 
 
 def team_reader(db, user):

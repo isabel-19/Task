@@ -1,4 +1,5 @@
 import { reactive } from 'vue';
+import { formatApiError } from './format';
 
 export const session = reactive({
   user: null,
@@ -11,7 +12,7 @@ export const session = reactive({
   realParticipants: false,
   importedParticipants: 0,
 });
-const base = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+const base = import.meta.env.DEV ? '/api' : import.meta.env.VITE_API_URL || '/api';
 
 export function can(permission) {
   return Array.isArray(permission)
@@ -20,28 +21,43 @@ export function can(permission) {
 }
 
 export async function api(path, options = {}) {
+  const { responseType, ...requestOptions } = options;
+  const multipart = options.body instanceof FormData;
   const response = await fetch(base + path, {
-    ...options,
+    ...requestOptions,
     credentials: 'include',
     headers: {
-      'Content-Type': 'application/json',
+      ...(multipart ? {} : { 'Content-Type': 'application/json' }),
       'X-CSRF-Token': session.csrf,
       ...options.headers,
     },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    body:
+      options.body === undefined
+        ? undefined
+        : multipart
+          ? options.body
+          : JSON.stringify(options.body),
   });
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     const details = data.detail;
-    const message = Array.isArray(details)
-      ? details.map((x) => `${x.loc?.join('.') || 'Campo'}: ${x.msg}`).join('\n')
-      : details || 'No se pudo completar la solicitud.';
+    const message = formatApiError(details);
     if (response.status === 401) clearSession();
     const error = new Error(message);
     error.status = response.status;
     throw error;
   }
-  return response.status === 204 ? null : response.json();
+  return response.status === 204
+    ? null
+    : responseType === 'blob'
+      ? response.blob()
+      : response.json();
+}
+
+export function fileUrl(url) {
+  return /^\/api\/evidence-files\/[a-f0-9-]+(?:\?download=true)?$/.test(url || '')
+    ? base + url.slice(4)
+    : url;
 }
 
 function setSession(data) {
@@ -89,8 +105,9 @@ export async function downloadReport(entity, filters = {}) {
     credentials: 'include',
   });
   if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.detail || 'No se pudo exportar.');
+    const err = await response.json().catch(() => ({}));
+    if (response.status === 401) clearSession();
+    throw new Error(formatApiError(err.detail));
   }
   const url = URL.createObjectURL(await response.blob());
   const anchor = document.createElement('a');

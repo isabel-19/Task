@@ -1,6 +1,8 @@
 <script setup>
   import { ref, reactive, computed } from 'vue';
   import { api } from '../api';
+  import { fieldLabel, formatApiError, human } from '../format';
+  import { dateLabel } from '../modules';
   const props = defineProps({ meta: Object, lookups: Object });
   const emit = defineEmits(['imported']);
   const entity = ref('documents'),
@@ -25,6 +27,26 @@
     'indicator-results',
   ];
   const fields = computed(() => props.meta[entity.value]?.fields || []);
+  const previewFields = computed(() => [
+    ...new Set((preview.value?.rows || []).slice(0, 5).flatMap((row) => Object.keys(row.data))),
+  ]);
+  function previewLabel(key) {
+    return fieldLabel(key, fields.value.find((field) => field.key === key)?.label);
+  }
+  function previewValue(row, key) {
+    const value = row.data[key];
+    const field = fields.value.find((field) => field.key === key);
+    if (field?.lookup)
+      return (
+        (props.lookups[field.lookup] || []).find((option) => option.value === value)?.label ||
+        value ||
+        '—'
+      );
+    if (typeof value === 'boolean') return value ? 'Sí' : 'No';
+    if (field?.options?.length) return human(value);
+    if (['date', 'datetime'].includes(field?.type)) return dateLabel(value);
+    return value ?? '—';
+  }
   async function body() {
     if (!file.value) throw new Error('Selecciona un archivo CSV o XLSX.');
     if (file.value.size > 5000000) throw new Error('Máximo 5 MB por archivo.');
@@ -44,7 +66,10 @@
     preview.value = null;
     confirmed.value = false;
     try {
-      source.value = await api('/import/preview', { method: 'POST', body: await body() });
+      source.value = await api('/import/preview', {
+        method: 'POST',
+        body: await body(),
+      });
       sheet.value = source.value.sheet;
       Object.keys(mapping).forEach((k) => delete mapping[k]);
       Object.keys(constants).forEach((k) => delete constants[k]);
@@ -80,7 +105,10 @@
     busy.value = true;
     error.value = '';
     try {
-      const result = await api('/import/commit/' + preview.value.id, { method: 'POST', body: {} });
+      const result = await api('/import/commit/' + preview.value.id, {
+        method: 'POST',
+        body: {},
+      });
       preview.value.imported = result.imported;
       emit('imported');
     } catch (e) {
@@ -165,7 +193,9 @@
           dense
           outlined
           clearable
-          :options="field.options"
+          :options="field.options.map((value) => ({ value, label: human(value) }))"
+          emit-value
+          map-options
           label="Valor constante"
         /><q-input v-else v-model="constants[field.key]" dense outlined label="Valor constante" />
       </div>
@@ -187,19 +217,43 @@
     ><template v-if="preview"
       ><div class="import-summary q-mt-lg">
         <b>{{ preview.valid_count }} filas válidas</b><span>{{ preview.error_count }} errores</span
-        ><small>SHA-256: {{ preview.sha256 }}</small>
+        ><small class="import-fingerprint" :title="preview.sha256"
+          >Huella del archivo: {{ preview.sha256.slice(0, 12) }}…{{
+            preview.sha256.slice(-8)
+          }}</small
+        >
       </div>
       <div v-if="preview.errors.length" class="error-banner q-pa-md q-my-md">
         <p v-for="item in preview.errors" :key="item.row">
           Fila {{ item.row }}:
-          {{ typeof item.error === 'string' ? item.error : JSON.stringify(item.error) }}
+          {{ formatApiError(item.error) }}
         </p>
         <p>
           Corrige la copia de trabajo y vuelve a generar la previsualización. La fuente respaldada
           se conserva.
         </p>
       </div>
-      <pre class="json-value">{{ JSON.stringify(preview.rows.slice(0, 5), null, 2) }}</pre>
+      <section v-if="preview.rows.length" class="import-preview">
+        <h3>Revisa los primeros {{ Math.min(preview.rows.length, 5) }} registros</h3>
+        <q-markup-table flat bordered wrap-cells class="import-preview-table">
+          <thead>
+            <tr>
+              <th>Fila</th>
+              <th v-for="key in previewFields" :key="key">
+                {{ previewLabel(key) }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in preview.rows.slice(0, 5)" :key="row.row">
+              <td>{{ row.row }}</td>
+              <td v-for="key in previewFields" :key="key">
+                {{ previewValue(row, key) }}
+              </td>
+            </tr>
+          </tbody>
+        </q-markup-table>
+      </section>
       <q-checkbox
         v-if="!preview.imported"
         v-model="confirmed"

@@ -3,7 +3,7 @@ import csv
 import io
 import unittest
 import zipfile
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select
@@ -56,6 +56,10 @@ class APITest(unittest.TestCase):
                             permission = m.Permission(name=module+'.'+action); db.add(permission); db.flush()
                         allowed = role_name=='administrador' or (module not in ['admin','audit'] and (action=='read' or (role_name=='integrante' and action=='write')))
                         if allowed: db.add(m.RolePermission(role_id=role.id,permission_id=permission.id))
+            self.chief = m.User(name='Jefatura ficticia', email='reviewer@example.invalid', password_hash=hash_password(PASSWORD))
+            db.add(self.chief); db.flush()
+            admin_role = db.scalar(select(m.Role).where(m.Role.name == 'administrador'))
+            db.add(m.UserRole(user_id=self.chief.id, role_id=admin_role.id))
             db.commit()
         self.sign_in()
         self.axis = self.create('axes', name='Eje ficticio')
@@ -101,8 +105,10 @@ class APITest(unittest.TestCase):
         self.assertEqual(r.status_code,200,r.text)
         task=r.json()
         report=self.client.get('/api/task-updates?task_id='+task['id']).json()['items'][0]
+        self.sign_in('reviewer@example.invalid')
         r=self.client.post('/api/task-updates/'+report['id']+'/review',json={'revision':task['revision'],'status':'validada','note':'Aporte revisado en prueba'})
         self.assertEqual(r.status_code,200,r.text)
+        self.sign_in()
         return r.json()
 
     def evidence(self,task):
@@ -217,14 +223,16 @@ class APITest(unittest.TestCase):
         self.create('task-documents',task_id=task['id'],document_id=received['id'])
         sent=self.document(number='TEST-002',section='emitidos',reference_id=received['id'])
         self.create('task-documents',task_id=task['id'],document_id=sent['id'])
-        r=self.client.post('/api/documents/'+sent['id']+'/send',json={'revision':1});self.assertEqual(r.status_code,200,r.text)
+        r=self.client.post('/api/documents/'+sent['id']+'/send',json={'revision':1,'status':'enviado_digital','sent_date':str(date.today())});self.assertEqual(r.status_code,200,r.text)
         self.assertEqual(r.json()['approval_status'],'pendiente')
         case=self.create('cases',title='Trámite ficticio',number='EXP-TEST',document_id=sent['id'],responsible_id=self.admin.id,current_department='Área externa ficticia',due_date=str(date.today()+timedelta(days=3)))
         resolution=self.document(number='TEST-003')
         for status in ['revision','firma','derivacion','aprobado']:
             r=self.client.post('/api/cases/'+case['id']+'/stage',json={'revision':case['revision'],'status':status,'department':'Dependencia ficticia','note':'Actuación verificada','resolution_id':resolution['id'] if status=='aprobado' else None})
             self.assertEqual(r.status_code,200,r.text);case=r.json()
-        self.assertEqual(self.client.get('/api/documents/'+sent['id']).json()['approval_status'],'aprobado')
+        sent_record = self.client.get('/api/documents/'+sent['id']).json()
+        self.assertEqual(sent_record['approval_status'], 'pendiente')
+        self.assertEqual(sent_record['document_status'], 'enviado_digital')
         task=self.ready(task);e,v=self.evidence(task);self.validate(v)
         r=self.client.post('/api/tasks/'+task['id']+'/close',json={'revision':task['revision'],'evidence_version_id':v['id']});self.assertEqual(r.status_code,200,r.text)
         self.assertEqual(self.client.get('/api/task-documents?task_id='+task['id']).json()['total'],2)
@@ -315,6 +323,224 @@ class APITest(unittest.TestCase):
         self.assertEqual(headers,['nombre']);self.assertEqual(rows[0][1]['nombre'],'Demo');self.assertEqual(sheet,'REGISTRO DIGITAL');self.assertFalse(links[0]['reviewed'])
 
 
+    def test_meeting_range_includes_entire_last_day(self):
+        meeting = self.create('meetings', title='Reunión del día final', date='2026-10-14T10:00:00',
+                              agenda='Agenda ficticia', location='Sala ficticia',
+                              responsible_id=self.admin.id, project_id=self.project['id'])
+        result = self.client.get('/api/meetings', params={'from': '2026-10-14', 'to': '2026-10-14'}).json()
+        self.assertEqual([r['id'] for r in result['items']], [meeting['id']])
+        self.assertEqual(self.client.get('/api/meetings', params={'to': '2026-10-13'}).json()['total'], 0)
+        self.assertEqual(self.client.get('/api/meetings', params={'from': '2026-10-15', 'to': '2026-10-14'}).status_code, 422)
+        self.assertEqual(meeting['date'], '2026-10-14T10:00:00')
+
+    def test_relation_search_uses_visible_names_and_respects_task_scope(self):
+        result = self.client.get('/api/user-roles', params={'q': 'Admin ficticio'}).json()
+        self.assertEqual(result['total'], 1)
+        self.assertEqual(self.client.get('/api/role-permissions', params={'q': 'administrador'}).json()['total'], 33)
+        self.assertEqual(self.client.get('/api/user-roles', params={'q': 'ZZZ-NO-EXISTE'}).json()['total'], 0)
+        hidden = self.task(title='Nombre reservado para administración')
+        self.sign_in('member@example.invalid')
+        result = self.client.get('/api/task-assignments', params={'q': hidden['title']}).json()
+        self.assertEqual(result['total'], 0)
+
+    def test_audit_instants_include_utc_zone_without_changing_calendar_dates(self):
+        timestamp = datetime.fromisoformat(self.project['updated_at'])
+        self.assertIsNotNone(timestamp.tzinfo)
+        self.assertEqual(timestamp.utcoffset(), timedelta(0))
+        self.assertEqual(self.project['start_date'], str(date.today() - timedelta(days=5)))
+
+    def test_validation_errors_are_spanish_and_do_not_include_raw_input(self):
+        response = self.client.post('/api/meetings', json={'title': 'Reunión incompleta'})
+        self.assertEqual(response.status_code, 422)
+        errors = response.json()['detail']
+        self.assertTrue(any(error['label'] == 'Agenda' for error in errors))
+        self.assertTrue(all(error['msg'] == 'Este campo es obligatorio.' for error in errors))
+        self.assertTrue(all('input' not in error and 'url' not in error for error in errors))
+        response = self.client.post('/api/auth/login', json={'email': 'a', 'password': ''})
+        self.assertEqual(response.status_code, 422)
+        self.assertNotIn('Field required', response.text)
+
+    def test_import_batch_metadata_export_is_available_only_to_admin_readers(self):
+        with self.factory() as db:
+            db.add(m.ImportBatch(filename='Fuente ficticia.csv', sheet='CSV', sha256='a' * 64, backup_path='backup.csv',
+                                 entity='documents', mapping={}, preview={'rows': [{'private': 'detalle de prueba'}]},
+                                 modified_by=self.admin.id))
+            db.commit()
+        response = self.client.get('/api/reports/import-batches.csv')
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertIn('Fuente ficticia.csv', response.text)
+        self.assertIn('Huella del archivo', response.text)
+        self.assertNotIn('detalle de prueba', response.text)
+        self.sign_in('member@example.invalid')
+        self.assertEqual(self.client.get('/api/reports/import-batches.csv').status_code, 403)
+
+    def document_data(self, **changes):
+        return {'title': 'Documento ficticio', 'year': 2026, 'document_type_id': self.type['id'],
+                'section': 'emitidos', 'date': '2026-10-14', 'sender': 'OGC ficticia',
+                'recipient': 'Área ficticia', 'responsible_id': self.admin.id, **changes}
+
+    def test_emitted_workflow_records_exact_medium_dates_followup_and_exports(self):
+        for state in ['enviado_digital', 'enviado_fisico', 'enviado_fisico_y_digital']:
+            doc = self.create('documents', **self.document_data(automatic_number=True))
+            self.assertEqual(doc['document_status'], 'por_inicio')
+            self.assertIsNone(doc['sent_date'])
+            missing_medium = self.client.post('/api/documents/'+doc['id']+'/send', json={'revision':doc['revision']})
+            self.assertEqual(missing_medium.status_code, 422)
+            result = self.client.post('/api/documents/'+doc['id']+'/send', json={
+                'revision':doc['revision'], 'status':state, 'sent_date':'2026-10-12'})
+            self.assertEqual(result.status_code, 200, result.text)
+            sent = result.json()
+            self.assertEqual((sent['document_status'], sent['sent_date']), (state, '2026-10-12'))
+            result = self.client.patch('/api/documents/'+doc['id'], json={
+                'revision':sent['revision'], 'receipt_number':'CARGO-123', 'priority':'alta',
+                'followup_frequency':'quincenal', 'comments':'Esperar respuesta del área',
+                'email_url':'https://mail.google.com/mail/u/0/#sent/example', 'attended':True})
+            self.assertEqual(result.status_code, 200, result.text)
+            self.assertEqual(result.json()['receipt_number'], 'CARGO-123')
+            filtered = self.client.get('/api/documents', params={'preparation_status':state}).json()['items']
+            self.assertEqual([item['id'] for item in filtered], [doc['id']])
+        self.assertEqual(self.client.get('/api/dashboard').json()['pending_documents'], 0)
+        export = self.client.get('/api/reports/documents.csv').text
+        self.assertIn('Estado del documento', export)
+        self.assertIn('enviado_fisico_y_digital', export)
+        self.assertNotIn('Aprobación', export)
+        self.assertNotIn('Atención del documento recibido', export)
+
+    def test_document_workflow_rejects_inconsistent_dates_and_type_states(self):
+        for changes in [
+            {'preparation_status':'enviado_digital'},
+            {'preparation_status':'en_redaccion','sent_date':'2026-10-12'},
+            {'preparation_status':'aprobado'},
+        ]:
+            response = self.client.post('/api/documents', json=self.document_data(automatic_number=True, **changes))
+            self.assertEqual(response.status_code, 422, response.text)
+        doc = self.create('documents', **self.document_data(automatic_number=True, preparation_status='en_redaccion'))
+        response = self.client.patch('/api/documents/'+doc['id'], json={
+            'revision':doc['revision'], 'preparation_status':'enviado_fisico_y_digital','sent_date':'2026-10-12'})
+        self.assertEqual(response.status_code, 200, response.text)
+        sent = response.json()
+        response = self.client.patch('/api/documents/'+doc['id'], json={
+            'revision':sent['revision'], 'preparation_status':'en_redaccion'})
+        self.assertEqual(response.status_code, 422)
+        minutes_type = self.create('document-types', name='Acta de reunión')
+        response = self.client.post('/api/documents', json=self.document_data(automatic_number=True,
+            document_type_id=minutes_type['id'], preparation_status='programada'))
+        self.assertEqual(response.status_code, 201, response.text)
+        received = self.document(intake_format='ambos', notebook_number='CUADERNO-42')
+        self.assertEqual(received['document_status'], 'pendiente_atencion')
+        self.assertEqual(self.client.get('/api/dashboard').json()['pending_documents'], 1)
+        self.assertEqual(self.client.get('/api/documents', params={'axis_id':self.axis['id']}).status_code, 200)
+
+    def test_document_number_preview_does_not_reserve_and_series_restart_by_year(self):
+        params = {'document_type_id': self.type['id'], 'year': 2026}
+        for _ in range(2):
+            self.assertEqual(self.client.get('/api/documents/next-number', params=params).json()['number'], 'CARTA N° 001-2026-UNAJMA-OGC')
+        first = self.create('documents', **self.document_data(automatic_number=True))
+        second = self.create('documents', **self.document_data(automatic_number=True))
+        self.assertEqual(first['number'], 'CARTA N° 001-2026-UNAJMA-OGC')
+        self.assertEqual(second['number'], 'CARTA N° 002-2026-UNAJMA-OGC')
+        next_year = self.create('documents', **self.document_data(year=2027, date='2027-01-01'))
+        self.assertEqual(next_year['number'], 'CARTA N° 001-2027-UNAJMA-OGC')
+        for type_name, prefix, suffix in [('Carta múltiple', 'CARTA MÚLTIPLE', 'UNAJMA-OGC'),
+                                         ('Informe', 'INFORME', 'UNAJMA-OGC'),
+                                         ('Informe técnico', 'INFORME TÉCNICO', 'UNAJMA/OGC'),
+                                         ('Oficio', 'OFICIO', 'UNAJMA-OGC'),
+                                         ('Acta de reunión', 'ACTA DE REUNIÓN', 'UNAJMA-OGC-SGCI')]:
+            typ = self.create('document-types', name=type_name)
+            record = self.create('documents', **self.document_data(document_type_id=typ['id']))
+            self.assertEqual(record['number'], f'{prefix} N° 001-2026-{suffix}')
+
+    def test_document_sequence_continues_reference_and_existing_alias_numbers(self):
+        with self.factory() as db:
+            db.add(m.DocumentSequence(series='carta', year=2026, last_number=500))
+            db.commit()
+        self.create('documents', **self.document_data(section='recibidos', number='CARTA N° 900-2026-OTRA-ENTIDAD'))
+        self.assertEqual(self.create('documents', **self.document_data())['number'], 'CARTA N° 501-2026-UNAJMA-OGC')
+        self.create('documents', **self.document_data(number='CARTA N° 520-2026-UNAJMA-OGC'))
+        alias = self.create('document-types', name='Carta simple')
+        automatic = self.create('documents', **self.document_data(document_type_id=alias['id'], automatic_number=True, number='IGNORAR ESTA SUGERENCIA'))
+        self.assertEqual(automatic['number'], 'CARTA N° 521-2026-UNAJMA-OGC')
+        self.assertEqual(self.create('documents', **self.document_data())['number'], 'CARTA N° 522-2026-UNAJMA-OGC')
+
+    def test_document_link_is_saved_atomically_and_edit_preserves_version_history(self):
+        url = 'https://docs.google.com/document/d/ficticio-v1/edit'
+        record = self.create('documents', **self.document_data(url='  ' + url + '  ', access_confirmed=True))
+        self.assertEqual((record['url'], record['version'], record['access_confirmed']), (url, 1, True))
+        response = self.client.patch('/api/documents/' + record['id'], json={'revision': record['revision'], 'url': url, 'access_confirmed': True})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()['version'], 1)
+        new_url = 'https://www.unajma.edu.pe/transparencia/documento-ficticio.pdf'
+        response = self.client.patch('/api/documents/' + record['id'], json={'revision': response.json()['revision'], 'url': new_url, 'access_confirmed': False})
+        self.assertEqual(response.status_code, 200, response.text)
+        edited = response.json()
+        self.assertEqual((edited['number'], edited['url'], edited['version']), (record['number'], new_url, 2))
+        versions = self.client.get('/api/document-versions', params={'document_id': record['id']}).json()['items']
+        self.assertEqual({(v['version'], v['url']) for v in versions}, {(1, url), (2, new_url)})
+        self.assertIn(new_url, self.client.get('/api/reports/documents.csv').text)
+        self.assertEqual(self.client.get('/api/documents/' + record['id']).json()['url'], new_url)
+
+    def test_invalid_document_links_or_failed_insert_do_not_consume_number(self):
+        for url in ['javascript:alert(1)', 'https://unajma.edu.pe.evil.invalid/doc', 'https://user:pass@docs.google.com/doc', 'http://drive.google.com/doc']:
+            response = self.client.post('/api/documents', json=self.document_data(url=url))
+            self.assertEqual(response.status_code, 422, response.text)
+        response = self.client.post('/api/documents', json=self.document_data(responsible_id='no-existe'))
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(self.create('documents', **self.document_data())['number'], 'CARTA N° 001-2026-UNAJMA-OGC')
+        metadata = self.client.get('/api/meta').json()['documents']['fields']
+        self.assertTrue(any(field['key'] == 'url' for field in metadata))
+
+    def test_received_and_normative_documents_keep_original_numbers_and_permissions(self):
+        response = self.client.post('/api/documents', json=self.document_data(automatic_number=False))
+        self.assertEqual(response.status_code, 422)
+        response = self.client.post('/api/documents', json=self.document_data(section='recibidos', automatic_number=True))
+        self.assertEqual(response.status_code, 422)
+        response = self.client.post('/api/documents', json=self.document_data(section='recibidos'))
+        self.assertEqual(response.status_code, 422)
+        plan = self.create('document-types', name='Plan')
+        params = {'document_type_id': plan['id'], 'year': 2026}
+        self.assertFalse(self.client.get('/api/documents/next-number', params=params).json()['automatic'])
+        record = self.create('documents', **self.document_data(document_type_id=plan['id'], section='normativos', number='UNAJMA.PL.A03.05.01.01'))
+        self.assertEqual(record['number'], 'UNAJMA.PL.A03.05.01.01')
+        self.sign_in('reader@example.invalid')
+        self.assertEqual(self.client.get('/api/documents/next-number', params=params).status_code, 403)
+
+    def test_document_destinations_use_existing_catalog_and_sender_follows_remitter(self):
+        with self.factory() as db:
+            db.add(m.ImportBatch(filename='Registro ficticio.xlsx', sheet='Listas', sha256='f'*64, backup_path='ficticio.xlsx',
+                                 entity='document-catalogs', status='imported', mapping={},
+                                 preview={'recipients': ['Rectorado', 'DIGA', 'SUNEDU']}, modified_by=self.admin.id))
+            db.commit()
+        options = self.client.get('/api/lookups').json()['document-recipients']
+        self.assertEqual([item['value'] for item in options], ['Rectorado', 'DIGA', 'SUNEDU'])
+        data = self.document_data(recipient='Rectorado', axis_id=self.axis['id'])
+        data.pop('sender')
+        document = self.create('documents', **data)
+        self.assertEqual(document['sender'], self.admin.name)
+        self.assertEqual(document['axis_id'], self.axis['id'])
+        self.assertIsNone(document['project_id'])
+        response = self.client.post('/api/documents', json={**data, 'recipient': 'Oficina inventada'})
+        self.assertEqual(response.status_code, 422)
+        response = self.client.post('/api/documents', json={**data, 'recipient': ['Rectorado']})
+        self.assertEqual(response.status_code, 422)
+        response = self.client.post('/api/documents', json={**data, 'responsible_id': {'id': self.admin.id}})
+        self.assertEqual(response.status_code, 422)
+        response = self.client.patch('/api/documents/' + document['id'], json={'revision': document['revision'], 'responsible_id': self.member.id})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()['sender'], self.member.name)
+        self.assertEqual(response.json()['number'], document['number'])
+
+    def test_document_edit_preserves_legacy_destination_and_project_without_exposing_them(self):
+        document = self.create('documents', **self.document_data(project_id=self.project['id']))
+        with self.factory() as db:
+            db.add(m.ImportBatch(filename='Catálogo ficticio', sheet='Listas', sha256='f'*64, backup_path='ficticio',
+                                 entity='document-catalogs', status='imported', mapping={}, preview={'recipients':['Rectorado']}, modified_by=self.admin.id))
+            db.commit()
+        response = self.client.patch('/api/documents/' + document['id'], json={'revision': document['revision'], 'title':'Asunto actualizado', 'recipient':document['recipient']})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()['project_id'], self.project['id'])
+        self.assertEqual(response.json()['recipient'], document['recipient'])
+
+
 class MigrationTest(unittest.TestCase):
     def test_frozen_sqlite_migration(self):
         engine=create_engine('sqlite://')
@@ -326,6 +552,13 @@ class MigrationTest(unittest.TestCase):
                 if stmt.strip():db.exec_driver_sql(stmt)
             for stmt in path.with_name('003_task_form_sqlite.sql').read_text(encoding='utf-8').split(';'):
                 if stmt.strip():db.exec_driver_sql(stmt)
+            for stmt in path.with_name('004_document_registry_sqlite.sql').read_text(encoding='utf-8').split(';'):
+                if stmt.strip():db.exec_driver_sql(stmt)
+            for stmt in path.with_name('005_document_axis_sqlite.sql').read_text(encoding='utf-8').split(';'):
+                if stmt.strip():db.exec_driver_sql(stmt)
+            for migration in ['006_document_workflow_sqlite.sql', '007_chief_administration_sqlite.sql', '008_evidence_files_sqlite.sql', '009_cloud_accounts_sqlite.sql', '010_cloud_configuration_sqlite.sql']:
+                for stmt in path.with_name(migration).read_text(encoding='utf-8').split(';'):
+                    if stmt.strip(): db.exec_driver_sql(stmt)
             tables=db.exec_driver_sql("SELECT count(*) FROM sqlite_master WHERE type='table'").scalar()
             self.assertEqual(tables,len(Base.metadata.tables))
         engine.dispose()

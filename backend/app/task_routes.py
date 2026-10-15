@@ -1,12 +1,19 @@
 from datetime import date
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict, Field
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from starlette.datastructures import UploadFile
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.formparsers import MultiPartException
 from sqlalchemy import select, func
 from . import models as m
 from .db import get_db
 from .security import current_user, require
 from .service import get_record, serialize, audit, enrich, private_url
 from .task_policy import require_access, require_participant, supervises, check_assignee, sync_progress
+from .evidence_storage import store_upload, upload_limit, TYPES, SIZE_MESSAGE
+from .evidence_objects import discard_object
+from .config import settings
 
 router = APIRouter()
 
@@ -16,7 +23,7 @@ class StrictInput(BaseModel):
 
 
 class NewEvidence(StrictInput):
-    title: str = Field(min_length=3, max_length=250)
+    title: str | None = Field(default=None, min_length=3, max_length=250)
     url: str = Field(min_length=1, max_length=4000)
     access_confirmed: bool = False
 
@@ -47,6 +54,10 @@ def expected_revision(task, expected):
 
 @router.post('/tasks/{identifier}/advance')
 def advance(identifier: str, body: AdvanceInput, user=Depends(current_user), db=Depends(get_db)):
+    return record_advance(identifier, body, user, db)
+
+
+def record_advance(identifier, body, user, db, uploaded=None):
     require(db, user, 'tasks.write')
     task = get_record(db, m.Task, identifier, True)
     require_participant(db, user, task)
@@ -59,17 +70,28 @@ def advance(identifier: str, body: AdvanceInput, user=Depends(current_user), db=
         raise HTTPException(422, 'Adjunta una evidencia nueva o una versión existente.')
     version_id = body.evidence_version_id
     if body.kind == 'avance':
-        require(db, user, 'evidence.write')
-        if body.evidence:
-            private_url(body.evidence.url)
-            if not body.evidence.access_confirmed:
+        # Assigned people contribute through their task permission. Managing the
+        # separate Evidence catalogue is not required to attach a task report.
+        if body.evidence or uploaded:
+            if body.evidence:
+                private_url(body.evidence.url)
+            if body.evidence and not body.evidence.access_confirmed:
                 raise HTTPException(422, 'Confirma que el jefe puede acceder a la evidencia.')
-            evidence = m.Evidence(title=body.evidence.title, category='Avance de tarea', date=date.today(), author_id=user.id, modified_by=user.id)
+            # Each submission keeps its own evidence, including several reports
+            # on the same day. The simplified form does not ask for a title.
+            title = (body.evidence.title if body.evidence else None) or f'Avance: {task.title[:175]} · {m.now().isoformat(timespec="microseconds")} UTC'
+            evidence = m.Evidence(title=title, category='Avance de tarea', date=date.today(), author_id=user.id, modified_by=user.id)
             db.add(evidence)
             audit(db, user, 'evidence', evidence, 'create')
-            version = m.EvidenceVersion(evidence_id=evidence.id, version=1, url=body.evidence.url, access_confirmed=True, author_id=user.id, modified_by=user.id)
+            file_id = m.uid() if uploaded else None
+            url = '/api/evidence-files/' + file_id if uploaded else body.evidence.url
+            version = m.EvidenceVersion(evidence_id=evidence.id, version=1, url=url, access_confirmed=True, author_id=user.id, modified_by=user.id)
             db.add(version)
             audit(db, user, 'evidence-versions', version, 'create')
+            if uploaded:
+                file = m.EvidenceFile(id=file_id, evidence_version_id=version.id, modified_by=user.id, **uploaded)
+                db.add(file)
+                audit(db, user, 'evidence-files', file, 'upload')
             link = m.EvidenceLink(evidence_id=evidence.id, task_id=task.id, modified_by=user.id)
             db.add(link)
             audit(db, user, 'evidence-links', link, 'create')
@@ -91,8 +113,74 @@ def advance(identifier: str, body: AdvanceInput, user=Depends(current_user), db=
     if body.kind == 'avance':
         sync_progress(db, task)
     touch(db, user, task, before, body.kind)
+    db.flush()
+    result = enrich(db, 'tasks', task, user)
     db.commit()
-    return enrich(db, 'tasks', task, user)
+    return result
+
+
+@router.get('/evidence-upload-options')
+def upload_options(user=Depends(current_user), db=Depends(get_db)):
+    require(db, user, 'tasks.read')
+    return {'max_bytes': upload_limit(), 'extensions': list(TYPES), 'enabled': settings.evidence_uploads_enabled}
+
+
+@router.post('/tasks/{identifier}/advance-file')
+async def advance_file(identifier: str, request: Request, user=Depends(current_user), db=Depends(get_db)):
+    require(db, user, 'tasks.write')
+    task = get_record(db, m.Task, identifier)
+    require_participant(db, user, task)
+    if not settings.evidence_uploads_enabled:
+        raise HTTPException(503, 'La carga de archivos no está habilitada en esta instalación. Usa un enlace.')
+    if task.status == 'cerrada':
+        raise HTTPException(409, 'La tarea ya está cerrada.')
+    # Bound the body even when Content-Length is absent or dishonest. The parser
+    # closes its temporary files on MultiPartException.
+    cap = upload_limit() + 64 * 1024
+    try:
+        declared = int(request.headers.get('content-length', '0'))
+    except ValueError:
+        raise HTTPException(400, 'Tamaño de solicitud no válido.')
+    if declared > cap:
+        raise HTTPException(413, SIZE_MESSAGE)
+    consumed = 0
+
+    async def bounded_receive():
+        nonlocal consumed
+        message = await request.receive()
+        consumed += len(message.get('body', b''))
+        if consumed > cap:
+            raise MultiPartException(SIZE_MESSAGE)
+        return message
+
+    bounded = Request(request.scope, receive=bounded_receive)
+    stored = None
+    try:
+        async with bounded.form(max_files=1, max_fields=3, max_part_size=16384) as form:
+            if set(form) != {'revision', 'progress', 'comment', 'file'} or any(len(form.getlist(key)) != 1 for key in form):
+                raise HTTPException(422, 'Envía un archivo, su descripción, avance y revisión de la tarea.')
+            upload = form['file']
+            if not isinstance(upload, UploadFile):
+                raise HTTPException(422, 'Selecciona un archivo de tu equipo.')
+            try:
+                body = AdvanceInput(revision=form['revision'], progress=form['progress'], comment=form['comment'])
+            except ValidationError as error:
+                raise RequestValidationError([dict(item, loc=('body', *item['loc'])) for item in error.errors()])
+            expected_revision(get_record(db, m.Task, identifier, True), body.revision)
+            stored = await store_upload(upload)
+            return record_advance(identifier, body, user, db, uploaded=stored)
+    except StarletteHTTPException as error:
+        db.rollback()
+        if stored:
+            await discard_object(stored['storage_key'])
+        if error.detail == SIZE_MESSAGE:
+            raise HTTPException(413, SIZE_MESSAGE)
+        raise
+    except Exception:
+        db.rollback()
+        if stored:
+            await discard_object(stored['storage_key'])
+        raise
 
 
 class ParticipantsInput(StrictInput):
@@ -138,6 +226,8 @@ def review_update(identifier: str, body: ReviewInput, user=Depends(current_user)
     if not supervises(db, user):
         raise HTTPException(403, 'La validación de avances corresponde al jefe.')
     item = get_record(db, m.TaskUpdate, identifier)
+    if item.author_id == user.id:
+        raise HTTPException(403, 'Tu entrega debe revisarla otra persona de jefatura.')
     task = get_record(db, m.Task, item.task_id, True)
     expected_revision(task, body.revision)
     if body.status not in {'validada', 'observada'}:

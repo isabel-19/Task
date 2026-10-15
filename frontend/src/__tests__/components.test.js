@@ -77,26 +77,29 @@ describe('Componentes de seguimiento', () => {
       { method: 'PATCH', body: { title: 'Asunto actualizado', date: '2026-10-13', revision: 3 } },
     ]);
   });
-  it('registra el envío mediante una acción sin aprobar el documento', async () => {
+  it('registra el medio y la fecha de envío del documento', async () => {
     api.mockResolvedValue({
       id: 'doc',
-      preparation_status: 'remitido',
+      preparation_status: 'enviado_digital',
       approval_status: 'pendiente',
     });
-    await dialog(ActionForm, {
+    const { vm } = await dialog(ActionForm, {
       resource: 'documents',
       action: 'send',
       record: { id: 'doc', revision: 2 },
       lookups: {},
     });
-    expect(document.body.textContent).toContain('La aprobación seguirá pendiente');
+    expect(document.body.textContent).toContain('Medio de envío');
+    expect(document.body.textContent).not.toContain('aprobación');
+    vm.$.setupState.form.status = 'enviado_digital';
+    vm.$.setupState.form.sent_date = '2026-10-12';
     document
       .querySelector('form')
       .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     await vi.waitFor(() => expect(api).toHaveBeenCalled());
     expect(api.mock.calls[0]).toEqual([
       '/documents/doc/send',
-      { method: 'POST', body: { revision: 2 } },
+      { method: 'POST', body: { revision: 2, status: 'enviado_digital', sent_date: '2026-10-12' } },
     ]);
   });
   it('el cronograma calcula la barra con las fechas reales de cada actividad', () => {

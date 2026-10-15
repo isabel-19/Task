@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import SecretStr
 
 
 class Settings(BaseSettings):
@@ -11,6 +12,24 @@ class Settings(BaseSettings):
     session_hours: int = 8
     demo_password: str = ''
     imports_enabled: bool = True
+    evidence_storage_dir: str = ''
+    evidence_max_upload_mb: int = 20
+    evidence_uploads_enabled: bool = True
+    evidence_storage_backend: str = 'local'
+    supabase_url: str = ''
+    supabase_storage_bucket: str = 'roadmap-evidence'
+    supabase_service_key: SecretStr = SecretStr('')
+    frontend_dist: str = ''
+    cloud_token_key: str = ''
+    cloud_public_api_url: str = ''
+    cloud_frontend_url: str = ''
+    google_client_id: str = ''
+    google_client_secret: str = ''
+    google_picker_api_key: str = ''
+    google_project_number: str = ''
+    microsoft_client_id: str = ''
+    microsoft_client_secret: str = ''
+    microsoft_tenant: str = 'common'
 
     @property
     def origins(self):

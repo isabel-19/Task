@@ -12,5 +12,6 @@ __pycache__/
 backend/storage/
 docs/qa/*.png
 .local/
+.playwright-mcp/
 coverage/
 *.log

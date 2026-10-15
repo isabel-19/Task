@@ -1,6 +1,7 @@
 <script setup>
   import { ref, reactive, watch, computed } from 'vue';
   import { api, session } from '../api';
+  import { human } from '../format';
   const props = defineProps({
     modelValue: Boolean,
     record: Object,
@@ -24,17 +25,19 @@
     () =>
       ({
         advance: {
-          title: 'Registrar mi avance',
-          note: 'Adjunta un enlace de Google Drive con acceso para el jefe. Tu reporte quedará pendiente de validación.',
+          title: 'Añadir avance y evidencia',
+          note: 'Cuenta lo que estás haciendo y comparte un enlace de Drive o Docs. La persona que revisa la tarea podrá consultar tu evidencia.',
           fields: [
+            {
+              key: 'comment',
+              label: '¿Qué has realizado?',
+              type: 'textarea',
+            },
             { key: 'progress', label: 'Mi avance (%)', type: 'number' },
-            { key: 'kind', label: 'Tipo', options: ['avance', 'comentario', 'observacion'] },
-            { key: 'comment', label: 'Comentario / observación', type: 'textarea' },
-            { key: 'evidence_title', label: 'Nombre de la evidencia' },
-            { key: 'evidence_url', label: 'Enlace de Google Drive / Docs' },
+            { key: 'evidence_url', label: 'Enlace de la evidencia (Drive o Docs)' },
             {
               key: 'evidence_access',
-              label: 'Confirmo que el jefe puede acceder a la evidencia',
+              label: 'La persona que revisa la tarea puede abrir este enlace',
               type: 'boolean',
             },
           ],
@@ -70,7 +73,11 @@
         validate: {
           title: 'Validar evidencia',
           fields: [
-            { key: 'status', label: 'Resultado', options: ['validada', 'observada'] },
+            {
+              key: 'status',
+              label: 'Resultado',
+              options: ['validada', 'observada'],
+            },
             { key: 'note', label: 'Nota de validación', type: 'textarea' },
           ],
         },
@@ -103,9 +110,12 @@
           ],
         },
         send: {
-          title: 'Remitir documento',
-          note: 'Se registrará la fecha de envío. La aprobación seguirá pendiente hasta la actuación autorizada en el expediente.',
-          fields: [],
+          title: 'Registrar envío del documento',
+          note: 'Selecciona cómo se envió y registra la fecha real del envío.',
+          fields: [
+            { key: 'status', label: 'Medio de envío', options: (props.lookups?.['document-statuses']?.[props.record?.document_type_id] || ['enviado_digital', 'enviado_fisico', 'enviado_fisico_y_digital']).filter((state) => ['enviado_digital', 'enviado_fisico', 'enviado_fisico_y_digital', 'compartido', 'enviado'].includes(state)) },
+            { key: 'sent_date', label: 'Fecha de envío', type: 'date' },
+          ],
         },
         task: {
           title: 'Crear tarea desde el acuerdo',
@@ -124,6 +134,73 @@
         },
       })[props.action] || { title: 'Acción', fields: [] },
   );
+  const visibleFields = computed(() =>
+    config.value.fields.filter(
+      (field) =>
+        props.action !== 'advance' ||
+        form.kind === 'avance' ||
+        (!field.key.startsWith('evidence_') && field.key !== 'progress'),
+    ),
+  );
+  function required(field) {
+    const key = field.key;
+    if (props.action === 'advance')
+      return (
+        ['progress', 'kind', 'comment'].includes(key) ||
+        (form.kind === 'avance' && ['evidence_title', 'evidence_url'].includes(key))
+      );
+    if (props.action === 'participants') return key === 'member_ids';
+    if (props.action === 'send') return ['status', 'sent_date'].includes(key);
+    if (props.action === 'close')
+      return key === 'evidence_version_id' && String(form.justification || '').trim().length < 10;
+    if (['validate', 'review'].includes(props.action)) return ['status', 'note'].includes(key);
+    if (props.action === 'stage')
+      return (
+        ['status', 'department', 'note'].includes(key) ||
+        (key === 'resolution_id' && ['aprobado', 'atendido'].includes(form.status))
+      );
+    return false;
+  }
+  function rules(field) {
+    const checks = [];
+    if (required(field))
+      checks.push(
+        (v) =>
+          (Array.isArray(v)
+            ? v.length > 0
+            : v !== null && v !== undefined && String(v).trim().length > 0) ||
+          'Completa este campo.',
+      );
+    if (['note', 'evidence_title', 'justification'].includes(field.key)) {
+      const min = field.key === 'justification' ? 10 : 3;
+      checks.push(
+        (v) => !v || String(v).trim().length >= min || `Ingresa al menos ${min} caracteres.`,
+      );
+    }
+    if (field.key === 'progress')
+      checks.push(
+        (v) =>
+          (Number.isInteger(Number(v)) && Number(v) >= 0 && Number(v) <= 100) ||
+          'Ingresa un porcentaje entero entre 0 y 100.',
+      );
+    if (field.key === 'evidence_url')
+      checks.push((v) => {
+        if (!v) return true;
+        try {
+          const url = new URL(v);
+          return (
+            (url.protocol === 'https:' &&
+              ['drive.google.com', 'docs.google.com'].includes(url.hostname) &&
+              !url.username &&
+              !url.password) ||
+            'Usa un enlace HTTPS de Google Drive o Docs.'
+          );
+        } catch {
+          return 'Usa un enlace HTTPS de Google Drive o Docs.';
+        }
+      });
+    return checks;
+  }
   watch(
     () => props.modelValue,
     (open) => {
@@ -136,10 +213,15 @@
       form.kind = 'avance';
       form.request_review = false;
       form.department = props.record?.current_department || '';
+      if (props.action === 'send') form.sent_date = new Date().toLocaleDateString('en-CA');
       error.value = '';
     },
   );
   async function save() {
+    if (props.action === 'advance' && form.kind === 'avance' && !form.evidence_access) {
+      error.value = 'Confirma que el jefe puede acceder a la evidencia antes de enviar el avance.';
+      return;
+    }
     busy.value = true;
     error.value = '';
     try {
@@ -150,12 +232,11 @@
           body[field.key] = field.type === 'number' ? Number(v) : v;
       }
       if (props.action === 'advance') {
-        if (body.kind === 'avance')
-          body.evidence = {
-            title: form.evidence_title,
-            url: form.evidence_url,
-            access_confirmed: form.evidence_access,
-          };
+        body.kind = 'avance';
+        body.evidence = {
+          url: form.evidence_url,
+          access_confirmed: form.evidence_access,
+        };
         delete body.evidence_title;
         delete body.evidence_url;
         delete body.evidence_access;
@@ -194,7 +275,7 @@
         ><q-card-section
           ><p v-if="config.note" class="info-note">{{ config.note }}</p>
           <div class="q-gutter-y-md">
-            <template v-for="field in config.fields" :key="field.key"
+            <template v-for="field in visibleFields" :key="field.key"
               ><q-checkbox
                 v-if="field.type === 'boolean'"
                 v-model="form[field.key]"
@@ -205,19 +286,24 @@
                 emit-value
                 map-options
                 clearable
-                :label="field.label"
+                :label="field.label + (required(field) ? ' *' : '')"
+                :rules="rules(field)"
                 :options="lookups[field.lookup] || []"
                 :multiple="field.multiple || false"
                 :use-chips="field.multiple || false" /><q-select
                 v-else-if="field.options"
                 v-model="form[field.key]"
                 outlined
-                :label="field.label"
-                :options="field.options" /><q-input
+                :label="field.label + (required(field) ? ' *' : '')"
+                :options="field.options.map((value) => ({ value, label: human(value) }))"
+                emit-value
+                map-options
+                :rules="rules(field)" /><q-input
                 v-else
                 v-model="form[field.key]"
                 outlined
-                :label="field.label"
+                :label="field.label + (required(field) ? ' *' : '')"
+                :rules="rules(field)"
                 :type="field.type || 'text'"
                 :min="field.key === 'progress' ? 0 : undefined"
                 :max="field.key === 'progress' ? 100 : undefined"
@@ -241,7 +327,7 @@
             color="primary"
             unelevated
             no-caps
-            label="Confirmar acción"
+            :label="action === 'advance' ? 'Guardar avance y evidencia' : 'Confirmar acción'"
             :loading="busy" /></q-card-actions></q-form></q-card
   ></q-dialog>
 </template>

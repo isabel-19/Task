@@ -62,8 +62,8 @@ def seed():
             db.add(m.UserRole(user_id=user.id, role_id=role.id, modified_by=admin.id))
             for name, permission in all_permissions.items():
                 module, action = name.split('.')
-                allowed = role_name == 'administrador'
-                if role_name in ('jefatura', 'coordinador'):
+                allowed = role_name in ('administrador', 'jefatura')
+                if role_name == 'coordinador':
                     allowed = module != 'admin' and (module != 'audit' or action == 'read')
                 if role_name == 'integrante':
                     allowed = module not in {'admin', 'audit'} and action in {'read', 'write'} and (module != 'reports' or action == 'read')

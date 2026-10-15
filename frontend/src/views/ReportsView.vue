@@ -32,7 +32,7 @@
     {
       entity: 'documents',
       title: 'Registro documental',
-      description: 'Documentos emitidos, recibidos y estados de aprobación.',
+      description: 'Envíos digitales y físicos, documentos recibidos y seguimiento.',
       icon: 'folder_open',
     },
     {

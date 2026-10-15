@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, computed, watch } from 'vue';
+  import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useQuasar } from 'quasar';
   import { modules, entityRoutes, dateLabel } from './modules';
@@ -13,6 +13,22 @@
     search = ref(''),
     loadingAlerts = ref(false);
   const available = computed(() => modules.filter((m) => can(m.permission)));
+  const pendingReviewCount = computed(
+    () => alerts.value.filter((alert) => alert.kind === 'task_review').length,
+  );
+  let alertTimer,
+    alertSequence = 0,
+    knownReviewIds = null;
+  function openAlert(alert) {
+    router.push({
+      path: entityRoutes[alert.entity],
+      query:
+        alert.kind === 'task_review'
+          ? { id: alert.task_id, scope: 'review', review: alert.id }
+          : { resource: alert.entity, id: alert.id },
+    });
+    alertsOpen.value = false;
+  }
   const initials = computed(() =>
     session.user?.name
       .split(' ')
@@ -22,22 +38,60 @@
   );
   async function loadAlerts() {
     if (!session.user || !can('reports.read')) return;
+    const userId = session.user.id,
+      turn = ++alertSequence;
     loadingAlerts.value = true;
     try {
-      alerts.value = await api('/alerts');
+      const result = await api('/alerts');
+      if (turn !== alertSequence || session.user?.id !== userId) return;
+      alerts.value = result;
+      const reviews = result.filter((alert) => alert.kind === 'task_review');
+      const fresh = reviews.filter((alert) => !knownReviewIds?.has(alert.id));
+      if (fresh.length)
+        q.notify({
+          type: 'info',
+          message:
+            knownReviewIds === null
+              ? reviews.length === 1
+                ? 'Tienes una evidencia pendiente de revisión.'
+                : `Tienes ${reviews.length} evidencias pendientes de revisión.`
+              : 'Nueva evidencia pendiente de revisión.',
+          timeout: 6000,
+          actions: [{ label: 'Revisar', color: 'white', handler: () => openAlert(fresh[0]) }],
+        });
+      knownReviewIds = new Set(reviews.map((alert) => alert.id));
     } catch (e) {
-      q.notify({ type: 'negative', message: e.message });
+      if (alertsOpen.value) q.notify({ type: 'negative', message: e.message });
     } finally {
-      loadingAlerts.value = false;
+      if (turn === alertSequence) loadingAlerts.value = false;
     }
   }
   watch(
     () => session.user?.id,
     (id) => {
+      alerts.value = [];
+      knownReviewIds = null;
+      alertSequence++;
       if (id) loadAlerts();
     },
     { immediate: true },
   );
+  const refreshAlerts = () => {
+    if (document.visibilityState !== 'hidden') loadAlerts();
+  };
+  onMounted(() => {
+    alertTimer = setInterval(refreshAlerts, 30000);
+    window.addEventListener('focus', refreshAlerts);
+    window.addEventListener('ogc:task-review-changed', refreshAlerts);
+    document.addEventListener('visibilitychange', refreshAlerts);
+  });
+  onUnmounted(() => {
+    clearInterval(alertTimer);
+    alertSequence++;
+    window.removeEventListener('focus', refreshAlerts);
+    window.removeEventListener('ogc:task-review-changed', refreshAlerts);
+    document.removeEventListener('visibilitychange', refreshAlerts);
+  });
   watch(
     () => route.path,
     () => {
@@ -74,7 +128,8 @@
           icon="menu"
           aria-label="Abrir menú"
           class="mobile-menu"
-          @click="drawer = !drawer" />
+          @click="drawer = !drawer"
+        />
         <div class="breadcrumb">
           Espacio de trabajo <q-icon name="chevron_right" size="17px" /><b>{{
             route.meta.label
@@ -101,14 +156,25 @@
           ><q-badge v-if="alerts.length" color="negative" floating rounded>{{
             alerts.length
           }}</q-badge></q-btn
+        ><q-btn
+          v-if="can('tasks.read')"
+          flat
+          round
+          icon="cloud_sync"
+          aria-label="Cuentas vinculadas"
+          @click="router.push('/cuentas')"
+          ><q-tooltip>Cuentas vinculadas</q-tooltip></q-btn
         ><span class="header-divider"></span
         ><q-avatar size="34px" class="user-avatar">{{ initials }}</q-avatar>
         <div class="header-user">
           <b>{{ session.user?.name }}</b
           ><small>{{ session.roles[0]?.replaceAll('_', ' ') }}</small>
         </div>
-        <q-btn flat round icon="logout" aria-label="Cerrar sesión" @click="leave" /></q-toolbar
-    ></q-header>
+        <q-btn flat round icon="logout" aria-label="Cerrar sesión" @click="leave"
+          ><q-tooltip>Cerrar sesión</q-tooltip></q-btn
+        ></q-toolbar
+      ></q-header
+    >
     <q-drawer v-model="drawer" show-if-above :width="248" bordered class="sidebar"
       ><div class="sidebar-brand">
         <div class="brand-mark"><q-icon name="account_balance" size="25px" /></div>
@@ -145,7 +211,7 @@
         <div class="quality-symbol"><q-icon name="eco" size="25px" /></div>
         <b>La calidad se construye<br />en equipo.</b
         ><small>Planificamos. Verificamos. Mejoramos.</small
-        ><span class="version-label">ROADMAP OGC · v0.1</span>
+        ><span class="version-label">ROADMAP OGC · UNAJMA</span>
       </div></q-drawer
     >
     <q-page-container
@@ -168,7 +234,12 @@
         ><q-card-section class="row items-center"
           ><div>
             <span class="eyebrow">SEGUIMIENTO</span>
-            <h3>Alertas y próximos plazos</h3>
+            <h3>Avisos y pendientes</h3>
+            <p v-if="pendingReviewCount">
+              {{ pendingReviewCount }}
+              {{ pendingReviewCount === 1 ? 'evidencia pendiente' : 'evidencias pendientes' }} de
+              revisión
+            </p>
           </div>
           <q-space /><q-btn
             flat
@@ -179,27 +250,29 @@
         ><q-linear-progress v-if="loadingAlerts" indeterminate /><q-list separator
           ><q-item
             v-for="alert in alerts"
-            :key="alert.id"
+            :key="`${alert.kind || alert.entity}:${alert.id}`"
             clickable
-            @click="
-              router.push({
-                path: entityRoutes[alert.entity],
-                query: { resource: alert.entity, id: alert.id },
-              });
-              alertsOpen = false;
-            "
+            @click="openAlert(alert)"
             ><q-item-section avatar
               ><q-icon
-                :name="alert.overdue ? 'schedule' : 'event'"
+                :name="
+                  alert.kind === 'task_review'
+                    ? 'rate_review'
+                    : alert.overdue
+                      ? 'schedule'
+                      : 'event'
+                "
                 :color="alert.overdue ? 'negative' : 'primary'" /></q-item-section
             ><q-item-section
               ><q-item-label>{{ alert.title }}</q-item-label
-              ><q-item-label caption
-                >{{ alert.label }} · {{ dateLabel(alert.due_date) }}</q-item-label
-              ></q-item-section
+              ><q-item-label caption>{{
+                alert.kind === 'task_review'
+                  ? `${alert.author} · Avance ${alert.progress}% · ${alert.label}`
+                  : `${alert.label} · ${dateLabel(alert.due_date)}`
+              }}</q-item-label></q-item-section
             ><q-item-section side
               ><span :class="alert.overdue ? 'text-negative' : 'text-primary'">{{
-                alert.overdue ? 'Vencido' : 'Próximo'
+                alert.kind === 'task_review' ? 'Por revisar' : alert.overdue ? 'Vencido' : 'Próximo'
               }}</span></q-item-section
             ></q-item
           ></q-list

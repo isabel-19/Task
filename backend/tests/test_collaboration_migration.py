@@ -48,6 +48,8 @@ class CollaborationMigrationTest(unittest.TestCase):
         engine=create_engine('sqlite://')
         with engine.begin() as db:
             self.apply(db,'001_initial_sqlite.sql');self.apply(db,'002_task_collaboration_sqlite.sql');self.apply(db,'003_task_form_sqlite.sql')
+            self.apply(db,'004_document_registry_sqlite.sql');self.apply(db,'005_document_axis_sqlite.sql')
+            self.apply(db,'006_document_workflow_sqlite.sql')
         factory=sessionmaker(bind=engine,expire_on_commit=False)
         with patch.object(bootstrap,'engine',engine), patch.object(bootstrap,'SessionLocal',factory), patch.object(bootstrap.command,'upgrade'), patch.object(Path,'write_text'), patch.object(bootstrap.settings,'demo_password','Ficticio-pruebas-2026!'):
             bootstrap.seed();bootstrap.seed()
@@ -58,6 +60,9 @@ class CollaborationMigrationTest(unittest.TestCase):
             member=db.scalar(select(m.User).where(m.User.email=='integrante@example.invalid'))
             coordinator=db.scalar(select(m.User).where(m.User.email=='coordinador@example.invalid'))
             self.assertIn('tasks.supervise',permissions(db,chief))
+            admin=db.scalar(select(m.User).where(m.User.email=='admin@example.invalid'))
+            self.assertEqual(permissions(db,chief),permissions(db,admin))
+            self.assertIn('admin.write',permissions(db,chief))
             self.assertNotIn('tasks.supervise',permissions(db,member))
             self.assertNotIn('tasks.supervise',permissions(db,coordinator))
             self.assertEqual(db.scalar(select(func.count()).select_from(m.Task).where(m.Task.created_by==chief.id)),8)

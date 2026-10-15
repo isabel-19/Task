@@ -1,5 +1,5 @@
 """Shared validation, transaction audit and filtering for explicit relational resources."""
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from urllib.parse import urlparse
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -9,7 +9,9 @@ from sqlalchemy.inspection import inspect
 from . import models as m
 from .catalog import RESOURCES, SYSTEM_FIELDS, CONTROLLED, OPTIONS, STATUS_OPTIONS
 from .security import permissions
-from .task_policy import task_scope, supervises, team_reader, can_access, require_access, check_assignee, progress_summary
+from .validation import validation_details
+from .task_policy import task_scope, supervises, team_reader, can_access, require_access, check_assignee, progress_summary, pending_reviews_statement
+from .evidence_storage import file_metadata
 
 
 def resource(name):
@@ -19,7 +21,16 @@ def resource(name):
 
 
 def serialize(record):
-    return jsonable_encoder({c.key: getattr(record, c.key) for c in inspect(record).mapper.columns if c.key != 'password_hash'})
+    values = {}
+    for column in inspect(record).mapper.columns:
+        if column.key == 'password_hash':
+            continue
+        value = getattr(record, column.key)
+        # Stored audit instants are UTC; meeting dates remain office calendar times.
+        if column.key.endswith('_at') and isinstance(value, datetime):
+            value = value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
+        values[column.key] = value
+    return jsonable_encoder(values)
 
 
 def audit(db, user, name, record, action, before=None):
@@ -42,6 +53,16 @@ def private_url(url):
     p = urlparse(url)
     if p.scheme != 'https' or p.hostname not in {'drive.google.com', 'docs.google.com'} or p.username or p.password:
         raise HTTPException(422, 'Usa un enlace HTTPS de Google Drive/Docs institucional. Confirma sus permisos de acceso.')
+    return url
+
+
+def document_url(url):
+    p = urlparse(url)
+    host = (p.hostname or '').lower()
+    if p.scheme != 'https' or p.username or p.password or not (
+        host in {'drive.google.com', 'docs.google.com', 'unajma.edu.pe'} or host.endswith('.unajma.edu.pe')
+    ):
+        raise HTTPException(422, 'Pega un enlace HTTPS de Google Drive, Google Docs o del sitio institucional de UNAJMA.')
     return url
 
 
@@ -70,13 +91,17 @@ def validate_data(name, body, partial=False):
     try:
         data = schema.model_validate(body).model_dump(exclude_unset=partial)
     except ValidationError as error:
-        raise HTTPException(422, jsonable_encoder(error.errors(include_context=False))) from error
+        raise HTTPException(422, validation_details(error.errors())) from error
     for key, value in data.items():
         choices = STATUS_OPTIONS.get(name) if key == 'status' else OPTIONS.get(key)
-        if choices and value not in choices:
+        if choices and value is not None and value not in choices:
             raise HTTPException(422, f'Valor no válido para {key}.')
     if data.get('url'):
-        private_url(data['url'])
+        (document_url if name == 'document-versions' else private_url)(data['url'])
+    if data.get('email_url'):
+        p = urlparse(data['email_url'])
+        if p.scheme != 'https' or not p.hostname or p.username or p.password:
+            raise HTTPException(422, 'Usa un enlace HTTPS válido para el correo.')
     if data.get('email'):
         data['email'] = data['email'].lower()
         if '@' not in data['email'] or '.' not in data['email'].split('@')[-1]:
@@ -85,6 +110,9 @@ def validate_data(name, body, partial=False):
 
 
 def check_business(db, name, data, existing=None):
+    if name == 'documents':
+        from .document_workflow import validate_workflow
+        validate_workflow(db, data, existing)
     merged = (serialize(existing) if existing else {}) | data
     if merged.get('start_date') and merged.get('due_date') and str(merged['due_date']) < str(merged['start_date']):
         raise HTTPException(422, 'El plazo no puede ser anterior al inicio.')
@@ -202,11 +230,35 @@ def filtered(db, name, params, user=None):
     stmt = select(model)
     if user:
         stmt = task_scope(db, name, stmt, user, params.get('scope', 'personal'))
+    if name == 'tasks' and params.get('pending_review') == 'true':
+        if not user or not supervises(db, user) or 'tasks.validate' not in permissions(db, user):
+            raise HTTPException(403, 'Las evidencias pendientes de revisión corresponden a jefatura.')
+        stmt = stmt.where(m.Task.id.in_(pending_reviews_statement(user.id).with_only_columns(m.TaskUpdate.task_id)))
     q = params.get('q', '').strip()
     if q:
-        searchable = [getattr(model, k) for k in ('title', 'name', 'number', 'sender', 'recipient', 'provider', 'email') if hasattr(model, k)]
-        if searchable:
-            stmt = stmt.where(or_(*[c.icontains(q, autoescape=True) for c in searchable]))
+        matches = [getattr(model, c.key).icontains(q, autoescape=True)
+                   for c in model.__table__.columns
+                   if c.type.python_type is str and c.key not in SYSTEM_FIELDS and not c.foreign_keys]
+        for column in model.__table__.columns:
+            if not column.foreign_keys or column.key in SYSTEM_FIELDS:
+                continue
+            table = next(iter(column.foreign_keys)).column.table.name
+            target = next(((key, spec[0]) for key, spec in RESOURCES.items() if spec[0].__tablename__ == table), None)
+            if not target:
+                continue
+            target_name, target_model = target
+            labels = [getattr(target_model, key).icontains(q, autoescape=True)
+                      for key in ('title', 'name', 'number') if hasattr(target_model, key)]
+            if labels:
+                linked = select(target_model.id).where(or_(*labels))
+                if user:
+                    linked = task_scope(db, target_name, linked, user, params.get('scope', 'personal'))
+                matches.append(getattr(model, column.key).in_(linked))
+        # Never silently ignore a visible search control on a relational resource.
+        if name == 'tasks':
+            people = select(m.User.id).where(m.User.name.icontains(q, autoescape=True))
+            matches.append(m.Task.id.in_(select(m.TaskAssignment.task_id).where(m.TaskAssignment.user_id.in_(people))))
+        stmt = stmt.where(or_(*matches) if matches else False)
     for c in model.__table__.columns:
         if c.key in SYSTEM_FIELDS | {'password_hash'}:
             continue
@@ -215,16 +267,22 @@ def filtered(db, name, params, user=None):
                 typ = c.type.python_type
                 raw = params[c.key]
                 val = date.fromisoformat(raw) if typ is date else (raw.lower() == 'true' if typ is bool else typ(raw))
-                stmt = stmt.where(getattr(model, c.key) == val)
+                if name == 'tasks' and c.key == 'responsible_id':
+                    stmt = stmt.where(or_(m.Task.responsible_id == val, m.Task.id.in_(select(m.TaskAssignment.task_id).where(m.TaskAssignment.user_id == val))))
+                else:
+                    stmt = stmt.where(getattr(model, c.key) == val)
             except (ValueError, TypeError):
                 raise HTTPException(422, f'Filtro no válido: {c.key}.')
     if params.get('axis_id') or params.get('process_id'):
         if hasattr(model, 'project_id'):
             projects = select(m.Project.id)
+            inherited_filter = False
             for key in ('axis_id', 'process_id'):
-                if params.get(key):
+                if params.get(key) and not hasattr(model, key):
                     projects = projects.where(getattr(m.Project, key) == params[key])
-            stmt = stmt.where(model.project_id.in_(projects))
+                    inherited_filter = True
+            if inherited_filter:
+                stmt = stmt.where(model.project_id.in_(projects))
     date_field = next((getattr(model, k) for k in ('due_date', 'date', 'start_date') if hasattr(model, k)), model.created_at)
     for key in ('year', 'month'):
         if params.get(key) and not (key == 'year' and hasattr(model, 'year')):
@@ -235,16 +293,24 @@ def filtered(db, name, params, user=None):
             if key == 'month' and not 1 <= val <= 12:
                 raise HTTPException(422, 'Mes no válido.')
             stmt = stmt.where(func.extract(key, date_field) == val)
+    lower = upper = None
     if params.get('from'):
         try:
-            stmt = stmt.where(date_field >= date.fromisoformat(params['from']))
+            lower = date.fromisoformat(params['from'])
+            stmt = stmt.where(date_field >= lower)
         except ValueError:
             raise HTTPException(422, 'Fecha inicial no válida.')
     if params.get('to'):
         try:
-            stmt = stmt.where(date_field <= date.fromisoformat(params['to']))
+            upper = date.fromisoformat(params['to'])
+            if date_field.type.python_type is datetime:
+                stmt = stmt.where(date_field < datetime.combine(upper + timedelta(days=1), datetime.min.time()))
+            else:
+                stmt = stmt.where(date_field <= upper)
         except ValueError:
             raise HTTPException(422, 'Fecha final no válida.')
+    if lower and upper and lower > upper:
+        raise HTTPException(422, 'La fecha inicial no puede ser posterior a la fecha final.')
     if params.get('overdue') == 'true' and hasattr(model, 'due_date'):
         stmt = stmt.where(model.due_date < date.today())
         if hasattr(model, 'status'):
@@ -269,12 +335,51 @@ def enrich(db, name, record, user=None, scope='personal'):
             if linked:
                 labels[c.key] = 'Tarea fuera de tu espacio' if user and isinstance(linked, m.Task) and not can_access(db, user, linked) else getattr(linked, 'title', getattr(linked, 'name', getattr(linked, 'number', linked.id)))
     result['_labels'] = labels
+    if name == 'documents':
+        from .document_workflow import display_status
+        result['document_status'] = display_status(record)
+        completed = record.attended or (record.section == 'recibidos' and record.approval_status in ['aprobado', 'atendido'])
+        result['days_remaining'] = (record.due_date - date.today()).days if record.due_date else None
+        result['deadline_status'] = 'completo' if completed else 'sin_plazo' if not record.due_date else 'vencido' if record.due_date < date.today() else 'en_plazo'
+        version = db.scalar(select(m.DocumentVersion).where(m.DocumentVersion.document_id == record.id)
+                            .order_by(m.DocumentVersion.version.desc()).limit(1))
+        result['url'] = version.url if version else None
+        result['version'] = version.version if version else 0
+        result['access_confirmed'] = version.access_confirmed if version else False
     if name == 'tasks':
         project=db.get(m.Project,record.project_id)
         axis=db.get(m.Axis,project.axis_id) if project else None
         result['axis_id']=axis.id if axis else None
         result['theme']=axis.name if axis else None
         result.update(progress_summary(db, record))
+        reports = list(db.scalars(select(m.TaskUpdate).where(
+            m.TaskUpdate.task_id == record.id, m.TaskUpdate.kind == 'avance',
+            m.TaskUpdate.evidence_version_id.is_not(None),
+        ).order_by(m.TaskUpdate.created_at.desc(), m.TaskUpdate.id)))
+        result['evidence_count'] = len(reports)
+        latest_version = db.get(m.EvidenceVersion, reports[0].evidence_version_id) if reports else None
+        result['latest_evidence_url'] = latest_version.url if latest_version else None
+        latest_file = db.scalar(select(m.EvidenceFile).where(m.EvidenceFile.evidence_version_id == latest_version.id)) if latest_version else None
+        result['latest_evidence_file'] = file_metadata(latest_file) if latest_file else None
+        # Keep files linked before the simplified contribution flow accessible.
+        reported_evidence = select(m.EvidenceVersion.evidence_id).where(
+            m.EvidenceVersion.id.in_([item.evidence_version_id for item in reports]))
+        attachments = []
+        for evidence in db.scalars(select(m.Evidence).join(m.EvidenceLink, m.EvidenceLink.evidence_id == m.Evidence.id).where(
+                m.EvidenceLink.task_id == record.id, m.Evidence.id.not_in(reported_evidence)).order_by(m.Evidence.created_at.desc(), m.Evidence.id)):
+            version = db.scalar(select(m.EvidenceVersion).where(m.EvidenceVersion.evidence_id == evidence.id).order_by(m.EvidenceVersion.version.desc()).limit(1))
+            file = db.scalar(select(m.EvidenceFile).where(m.EvidenceFile.evidence_version_id == version.id)) if version else None
+            attachments.append({'id': evidence.id, 'title': evidence.title, 'kind': 'evidence', 'url': version.url if version else None, 'file': file_metadata(file) if file else None})
+        result['evidence_count'] += len(attachments)
+        for document in db.scalars(select(m.Document).join(m.TaskDocument, m.TaskDocument.document_id == m.Document.id).where(
+                m.TaskDocument.task_id == record.id).order_by(m.Document.created_at.desc(), m.Document.id)):
+            version = db.scalar(select(m.DocumentVersion).where(m.DocumentVersion.document_id == document.id).order_by(m.DocumentVersion.version.desc()).limit(1))
+            attachments.append({'id': document.id, 'title': document.title, 'kind': 'document', 'url': version.url if version else None})
+        result['document_count'] = sum(item['kind'] == 'document' for item in attachments)
+        result['attachments'] = attachments
+        if not result['latest_evidence_url']:
+            result['latest_evidence_url'] = next((item['url'] for item in attachments if item['url']), None)
+            result['latest_evidence_file'] = next((item['file'] for item in attachments if item.get('file') and item['url'] == result['latest_evidence_url']), None)
         result['progress'] = result['validated_progress']
         if record.progress != result['validated_progress']:
             result['legacy_progress'] = record.progress
@@ -291,9 +396,12 @@ def enrich(db, name, record, user=None, scope='personal'):
         result['reviewer'] = db.get(m.User, review.reviewer_id).name if review else None
         version = db.get(m.EvidenceVersion, record.evidence_version_id) if record.evidence_version_id else None
         result['url'] = version.url if version else None
+        file = db.scalar(select(m.EvidenceFile).where(m.EvidenceFile.evidence_version_id == version.id)) if version else None
+        result['file'] = file_metadata(file) if file else None
         latest = db.scalar(select(m.TaskUpdate.id).where(m.TaskUpdate.task_id == record.task_id, m.TaskUpdate.author_id == record.author_id, m.TaskUpdate.kind == 'avance').order_by(m.TaskUpdate.created_at.desc(), m.TaskUpdate.id).limit(1))
+        result['superseded'] = record.kind == 'avance' and not review and latest != record.id
         task = db.get(m.Task, record.task_id)
-        result['can_review'] = bool(user and supervises(db, user) and 'tasks.validate' in permissions(db, user) and record.kind == 'avance' and record.evidence_version_id and not review and latest == record.id and task.status != 'cerrada')
+        result['can_review'] = bool(user and user.id != record.author_id and supervises(db, user) and 'tasks.validate' in permissions(db, user) and record.kind == 'avance' and record.evidence_version_id and not review and latest == record.id and task.status != 'cerrada')
     if name == 'projects':
         stmt = select(m.Task).where(m.Task.project_id == record.id)
         if user:

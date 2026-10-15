@@ -25,7 +25,11 @@ describe('Sesión y transporte protegido', () => {
     expect(can('tasks.validate')).toBe(false);
     expect(session.realParticipants).toBe(true);
     expect(session.importedParticipants).toBe(4);
-    fetch.mockResolvedValueOnce({ ok: true, status: 201, json: async () => ({ id: 'task' }) });
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: 'task' }),
+    });
     await api('/tasks', { method: 'POST', body: { title: 'Demo' } });
     const options = fetch.mock.calls[1][1];
     expect(options.credentials).toBe('include');
@@ -48,13 +52,46 @@ describe('Sesión y transporte protegido', () => {
     fetch.mockResolvedValue({
       ok: false,
       status: 422,
-      json: async () => ({ detail: [{ loc: ['due_date'], msg: 'Fecha inválida' }] }),
+      json: async () => ({
+        detail: [{ loc: ['due_date'], msg: 'Fecha inválida' }],
+      }),
     });
-    await expect(api('/tasks')).rejects.toThrow('due_date: Fecha inválida');
+    await expect(api('/tasks')).rejects.toThrow('Plazo: Fecha inválida');
   });
   it('preserva filtros válidos y descarta filtros vacíos', () => {
-    expect(query({ q: 'Carta múltiple', year: 2026, status: '', responsible_id: null })).toBe(
-      'q=Carta+m%C3%BAltiple&year=2026',
+    expect(
+      query({
+        q: 'Carta múltiple',
+        year: 2026,
+        status: '',
+        responsible_id: null,
+      }),
+    ).toBe('q=Carta+m%C3%BAltiple&year=2026');
+  });
+  it('envía archivos multipart con cookie y CSRF, sin forzar una cabecera JSON', async () => {
+    session.csrf = 'csrf-file';
+    const body = new FormData();
+    body.append('file', new File(['evidencia'], 'informe.txt', { type: 'text/plain' }));
+    fetch.mockResolvedValue({ ok: true, status: 200, json: async () => ({ id: 'task' }) });
+    await api('/tasks/task/advance-file', { method: 'POST', body });
+    const request = fetch.mock.calls[0][1];
+    expect(request.body).toBe(body);
+    expect(request.credentials).toBe('include');
+    expect(request.headers['X-CSRF-Token']).toBe('csrf-file');
+    expect(request.headers['Content-Type']).toBeUndefined();
+  });
+  it('obtiene la vista binaria por una solicitud autenticada y propaga los errores', async () => {
+    const blob = new Blob(['%PDF-1.4'], { type: 'application/pdf' });
+    fetch.mockResolvedValueOnce({ ok: true, status: 200, blob: async () => blob });
+    expect(await api('/evidence-files/demo', { responseType: 'blob' })).toBe(blob);
+    expect(fetch.mock.calls[0][1].credentials).toBe('include');
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+      json: async () => ({ detail: 'No tienes acceso' }),
+    });
+    await expect(api('/evidence-files/demo', { responseType: 'blob' })).rejects.toThrow(
+      'No tienes acceso',
     );
   });
 });

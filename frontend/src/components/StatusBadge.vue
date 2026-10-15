@@ -12,13 +12,35 @@
       'aprobado',
       'atendido',
       'finalizado',
+      'enviado_digital',
+      'enviado_fisico',
+      'enviado_fisico_y_digital',
+      'compartido',
+      'enviado',
     ].includes(props.value)
       ? 'success'
-      : ['observado', 'observada', 'urgente', 'alta'].includes(props.value)
+      : ['pendiente', 'vencida', 'vencido', 'observado', 'observada', 'urgente', 'alta'].includes(
+            props.value,
+          )
         ? 'danger'
-        : ['en_revision', 'pendiente_validacion', 'solicitada', 'firma'].includes(props.value)
+        : [
+              'en_progreso',
+              'pendiente_revision',
+              'pendiente_validacion',
+              'solicitada',
+              'firma',
+              'listo_para_envio',
+              'para_revision',
+            ].includes(props.value)
           ? 'warning'
-          : ['en_progreso', 'remitido', 'derivacion', 'revision'].includes(props.value)
+          : [
+                'en_revision',
+                'remitido',
+                'derivacion',
+                'revision',
+                'en_redaccion',
+                'en_reunion',
+              ].includes(props.value)
             ? 'info'
             : 'neutral',
   );

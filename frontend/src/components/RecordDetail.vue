@@ -2,9 +2,10 @@
   import { ref, computed, watch } from 'vue';
   import { useRouter } from 'vue-router';
   import { api, query } from '../api';
-  import { dateLabel, human, entityRoutes } from '../modules';
+  import { dateLabel, fieldLabel, entityRoutes } from '../modules';
   import TaskProgress from './TaskProgress.vue';
   import StatusBadge from './StatusBadge.vue';
+  import { documentState } from '../documentWorkflow';
   const props = defineProps({
     modelValue: Boolean,
     resource: String,
@@ -20,6 +21,8 @@
   const fields = computed(() =>
     Object.entries(props.record || {}).filter(
       ([key]) =>
+        !(props.resource === 'documents' && (['project_id', 'preparation_status'].includes(key) ||
+          (props.record?.section !== 'recibidos' && ['approval_status', 'intake_format', 'notebook_number'].includes(key)))) &&
         ![
           'id',
           'created_at',
@@ -39,6 +42,7 @@
           'can_advance',
           'can_review',
           'can_assign',
+          'evidence_count', 'document_count', 'attachments', 'latest_evidence_url', 'latest_evidence_file', 'file',
         ].includes(key) && !(props.resource === 'tasks' && ['project_id', 'axis_id'].includes(key)),
     ),
   );
@@ -96,7 +100,7 @@
     }
     if (props.resource === 'agreements' && s.can_write)
       a.push(['task', r.task_id ? 'Abrir tarea derivada' : 'Crear tarea', 'add_task']);
-    if (props.resource === 'documents' && s.can_write && !r.sent_date)
+    if (props.resource === 'documents' && r.section === 'emitidos' && s.can_write && !r.sent_date && r.preparation_status !== 'anulado')
       a.push(['send', 'Registrar envío', 'send']);
     if (props.resource === 'cases' && s.can_write && !['aprobado', 'atendido'].includes(r.status))
       a.push(['stage', 'Nueva actuación', 'account_tree']);
@@ -148,33 +152,19 @@
     { immediate: true },
   );
   function label(key) {
-    return (
-      schema.value?.fields.find((f) => f.key === key)?.label ||
-      {
-        preparation_status: 'Preparación',
-        approval_status: 'Aprobación',
-        sent_date: 'Fecha de envío',
-        progress: 'Avance',
-        theme: 'Temática / eje',
-        legacy_progress: 'Avance anterior registrado sin validación individual',
-        validation_status: 'Validación',
-        status: 'Estado',
-        author_id: 'Autor',
-        created_by: 'Asignada por',
-        assigned_by: 'Asignada por',
-        validated_by: 'Validado por',
-        task_id: 'Tarea derivada',
-        url: 'Enlace autorizado',
-        version: 'Versión',
-      }[key] ||
-      human(key)
-    );
+    if (props.resource === 'documents') {
+      const names = { recipient: 'Destinatario / oficina', axis_id: 'Eje temático',
+        responsible_id: props.record?.section === 'emitidos' ? 'Remitente (personal OGC)' : 'Responsable de atención OGC' };
+      if (names[key]) return names[key];
+    }
+    if (key === 'task_id' && props.resource === 'agreements') return 'Tarea derivada';
+    return fieldLabel(key, schema.value?.fields.find((field) => field.key === key)?.label);
   }
   function display(key, value) {
     if (props.record?._labels?.[key]) return props.record._labels[key];
     if (typeof value === 'boolean') return value ? 'Sí' : 'No';
     if (value === null || value === '') return '—';
-    if (key.endsWith('date') || key === 'date') return dateLabel(value);
+    if (key.endsWith('date') || key === 'date' || key.endsWith('_at')) return dateLabel(value);
     if (typeof value === 'object') return JSON.stringify(value, null, 2);
     return value;
   }
@@ -243,17 +233,20 @@
       ><q-card-section class="detail-heading"
         ><div>
           <span class="eyebrow">{{ schema?.label }} · FICHA DEL REGISTRO</span>
-          <h2>{{ record?.title || record?.name || record?.number || schema?.label }}</h2>
+          <h2>
+            {{ record?.title || record?.name || record?.number || schema?.label }}
+          </h2>
           <div class="q-mt-sm">
             <StatusBadge v-if="record?.status" :value="record.status" /><StatusBadge
-              v-if="record?.approval_status"
-              :value="record.approval_status"
+              v-if="resource === 'documents'"
+              :value="documentState(record)"
             />
           </div>
         </div>
         <q-btn flat round icon="close" aria-label="Cerrar detalle" v-close-popup /></q-card-section
       ><q-separator /><q-card-section
         ><div class="detail-actions">
+          <q-btn v-if="['documents', 'evidence-versions'].includes(resource) && record?.url" :href="record.url" target="_blank" rel="noopener noreferrer" color="primary" unelevated no-caps icon="description" icon-right="open_in_new" label="Abrir documento" />
           <q-btn
             v-if="
               schema?.can_write &&
@@ -304,11 +297,11 @@
               rounded
               size="8px"
             /><a
-              v-else-if="key === 'url' && value"
+              v-else-if="['url', 'email_url'].includes(key) && value"
               :href="value"
               target="_blank"
               rel="noopener noreferrer"
-              >Abrir en Google Drive <q-icon name="open_in_new"
+              >{{ key === 'email_url' ? 'Abrir correo' : 'Abrir documento' }} <q-icon name="open_in_new"
             /></a>
             <pre v-else-if="typeof value === 'object' && value !== null" class="json-value">{{
               display(key, value)
@@ -318,12 +311,15 @@
             </p>
           </div>
         </div>
-        <div v-if="loading" class="q-my-lg"><q-linear-progress indeterminate /></div>
+        <div v-if="loading" class="q-my-lg">
+          <q-linear-progress indeterminate />
+        </div>
         <q-banner v-if="error" class="error-banner" role="alert">{{ error }}</q-banner>
         <section v-for="group in related" :key="group.name" class="related-section">
           <div class="row items-center q-mb-md">
             <h3>
-              {{ meta[group.name]?.label }} <span class="muted">({{ group.total }})</span>
+              {{ meta[group.name]?.label }}
+              <span class="muted">({{ group.total }})</span>
             </h3>
             <q-space /><q-btn
               v-if="meta[group.name]?.can_write && (resource !== 'tasks' || record?.can_assign)"
@@ -374,9 +370,12 @@
         </section>
         <div class="record-audit-footer">
           <span>ID: {{ record?.id }}</span
-          ><span
+          ><span v-if="record?.revision"
             >Revisión {{ record?.revision }} · Actualizado {{ dateLabel(record?.updated_at) }} por
             {{ record?._labels?.modified_by || '—' }}</span
+          ><span v-else
+            >Registrado {{ dateLabel(record?.created_at) }} por
+            {{ record?._labels?.actor_id || '—' }}</span
           >
         </div></q-card-section
       ></q-card

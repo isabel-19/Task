@@ -2,6 +2,7 @@
   import { ref } from 'vue';
   import { useRouter, useRoute } from 'vue-router';
   import { login } from '../api';
+  import RouteMotif from '../components/RouteMotif.vue';
   const router = useRouter(),
     route = useRoute();
   const email = ref(''),
@@ -42,6 +43,7 @@
           <span>Planificar</span><q-icon name="east" /><span>Verificar</span
           ><q-icon name="east" /><span>Mejorar</span>
         </div>
+        <RouteMotif />
       </div>
       <span class="login-footer">Universidad Nacional José María Arguedas</span>
     </section>
@@ -83,8 +85,8 @@
         /></q-form>
         <div class="login-note">
           <q-icon name="info_outline" /><span
-            >El acceso es administrado por la OGC. Para las pruebas locales, consulta las cuentas de
-            demostración en <code>.local/demo-access.txt</code>.</span
+            >Tu cuenta es administrada por la OGC. Si necesitas acceso o ayuda con tu contraseña,
+            comunícate con la persona responsable de la oficina.</span
           >
         </div>
       </div>

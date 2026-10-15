@@ -38,6 +38,58 @@ class TaskFormTest(unittest.TestCase):
             self.assertEqual(groups[0].due_date,date.today()+timedelta(days=30))
         self.assertEqual(self.client.get('/api/tasks?scope=assigned').json()['total'],2)
 
+    def test_direct_assignment_recipient_adds_evidence_and_chief_reviews_and_closes(self):
+        task=self.create('tasks',title='Preparar informe',responsible_id=self.member.id,
+                         due_date=str(date.today()+timedelta(days=5)),description='Revisar los resultados')
+        self.assertEqual(task['created_by'],self.admin.id)
+        self.assertEqual(task['member_ids'],[self.member.id])
+        self.assertFalse(task['can_advance'])
+        self.assertEqual(self.client.get('/api/tasks?scope=assigned').json()['total'],1)
+        self.assertEqual(self.client.get('/api/tasks?scope=received').json()['total'],0)
+        self.sign_in('reader@example.invalid')
+        self.assertEqual(self.client.get('/api/tasks?scope=received').json()['total'],0)
+        self.assertEqual(self.client.get('/api/tasks/'+task['id']).status_code,403)
+        self.sign_in('member@example.invalid')
+        received=self.client.get('/api/tasks?scope=received').json()['items']
+        self.assertEqual([item['id'] for item in received],[task['id']])
+        self.assertTrue(received[0]['can_advance'])
+        first=self.client.post('/api/tasks/'+task['id']+'/advance',json={
+            'revision':task['revision'],'progress':50,'comment':'Primer borrador',
+            'evidence':{'url':'https://drive.google.com/file/d/borrador-ficticio/view','access_confirmed':True}})
+        self.assertEqual(first.status_code,200,first.text)
+        task=first.json()
+        result=self.client.post('/api/tasks/'+task['id']+'/advance',json={
+            'revision':task['revision'],'progress':100,'comment':'Informe terminado',
+            'evidence':{'url':'https://drive.google.com/file/d/ficticio/view','access_confirmed':True}})
+        self.assertEqual(result.status_code,200,result.text)
+        task=result.json()
+        reports=self.client.get('/api/task-updates?task_id='+task['id']).json()['items']
+        self.assertEqual(len(reports),2)
+        self.assertEqual(len({item['evidence_version_id'] for item in reports}),2)
+        self.sign_in()
+        report=self.client.get('/api/task-updates?task_id='+task['id']+'&scope=team').json()['items'][0]
+        review=self.client.post('/api/task-updates/'+report['id']+'/review',json={'revision':task['revision'],'status':'validada','note':'Informe revisado'})
+        self.assertEqual(review.status_code,200,review.text)
+        task=self.client.get('/api/tasks/'+task['id']).json()
+        closed=self.client.post('/api/tasks/'+task['id']+'/close',json={'revision':task['revision'],'evidence_version_id':report['evidence_version_id']})
+        self.assertEqual(closed.status_code,200,closed.text)
+        self.assertEqual(closed.json()['status'],'cerrada')
+        self.assertEqual(closed.json()['description'],'Revisar los resultados')
+
+    def test_direct_assignment_reuses_group_and_failed_assignment_rolls_back(self):
+        body={'title':'Asignación directa','responsible_id':self.member.id,'due_date':str(date.today()+timedelta(days=5))}
+        invalid=self.client.post('/api/tasks',json=body|{'responsible_id':'inexistente'})
+        self.assertEqual(invalid.status_code,422,invalid.text)
+        with self.factory() as db:
+            self.assertEqual(db.scalar(select(func.count()).select_from(m.Axis).where(m.Axis.name=='Tareas generales')),0)
+        first=self.create('tasks',**body)
+        second=self.create('tasks',**(body|{'title':'Otra tarea directa'}))
+        self.assertEqual(first['project_id'],second['project_id'])
+        updated=self.client.patch('/api/tasks/'+first['id'],json={'revision':first['revision'],'title':'Título actualizado'})
+        self.assertEqual(updated.status_code,200,updated.text)
+        for field in ['project_id','axis_id','office','start_date','member_ids']:
+            self.assertEqual(updated.json()[field],first[field])
+
     def test_offices_and_themes_come_from_catalog_and_unknown_office_is_rejected(self):
         self.catalog()
         choices=self.client.get('/api/lookups').json()

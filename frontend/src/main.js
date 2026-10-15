@@ -5,6 +5,7 @@ import '@quasar/extras/material-icons/material-icons.css';
 import '@quasar/extras/roboto-font/roboto-font.css';
 import 'quasar/dist/quasar.css';
 import './style.css';
+import './theme.css';
 import App from './App.vue';
 import { router } from './router';
 
@@ -14,12 +15,13 @@ createApp(App)
     lang,
     config: {
       brand: {
-        primary: '#157f75',
-        secondary: '#223c43',
+        primary: '#1d4ed8',
+        secondary: '#12356b',
         accent: '#d69945',
-        positive: '#157f75',
+        positive: '#15803d',
         negative: '#c25952',
         warning: '#bd8638',
+        info: '#2563eb',
       },
     },
   })

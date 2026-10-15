@@ -170,6 +170,14 @@ class DocumentType(Record, Base):
     name = Column(String(120), nullable=False, unique=True)
 
 
+class DocumentSequence(Base):
+    __tablename__ = 'document_sequences'
+    series = Column(String(40), primary_key=True)
+    year = Column(Integer, primary_key=True)
+    last_number = Column(Integer, nullable=False, default=0)
+    __table_args__ = (CheckConstraint('last_number >= 0', name='document_sequence_nonnegative'),)
+
+
 class Document(Record, Base):
     __tablename__ = 'documents'
     title = Column(String(250), nullable=False)
@@ -181,12 +189,23 @@ class Document(Record, Base):
     sender = Column(String(160), nullable=False)
     recipient = Column(String(160), nullable=False)
     responsible_id = fk('users', False)
+    axis_id = fk('axes')
     project_id = fk('projects')
     reference_id = fk('documents')
-    preparation_status = Column(String(30), nullable=False, default='elaborado')
+    preparation_status = Column(String(30), nullable=False, default='por_inicio')
     approval_status = Column(String(30), nullable=False, default='pendiente')
     sent_date = Column(Date)
     due_date = Column(Date)
+    intake_format = Column(String(30))
+    notebook_number = Column(String(80))
+    reference_text = Column(Text)
+    priority = Column(String(30))
+    followup_frequency = Column(String(30))
+    receipt_number = Column(String(120))
+    comments = Column(Text)
+    email_url = Column(Text)
+    attended = Column(Boolean, nullable=False, default=False)
+    drafting_assistant_id = fk('users')
     __table_args__ = (UniqueConstraint('number', 'year', 'document_type_id', 'sender'),
                       CheckConstraint("section IN ('emitidos','recibidos','normativos','archivo')", name='document_section'))
 
@@ -290,6 +309,42 @@ class EvidenceValidation(Record, Base):
     status = Column(String(30), nullable=False)
     note = Column(Text, nullable=False)
     __table_args__ = (CheckConstraint("status IN ('validada','observada')", name='evidence_validation_status'),)
+
+
+class EvidenceFile(Record, Base):
+    __tablename__ = 'evidence_files'
+    evidence_version_id = fk('evidence_versions', False)
+    storage_key = Column(String(64), nullable=False, unique=True)
+    file_name = Column(String(250), nullable=False)
+    content_type = Column(String(120), nullable=False)
+    byte_size = Column(Integer, nullable=False)
+    sha256 = Column(String(64), nullable=False)
+    source_provider = Column(String(20))
+    source_item_id = Column(String(256))
+    source_url = Column(Text)
+    __table_args__ = (UniqueConstraint('evidence_version_id'),
+                      CheckConstraint('byte_size > 0', name='evidence_file_size'))
+
+
+class CloudAccount(Record, Base):
+    __tablename__ = 'cloud_accounts'
+    user_id = fk('users', False)
+    provider = Column(String(20), nullable=False)
+    subject = Column(String(256), nullable=False)
+    account_label = Column(String(254), nullable=False)
+    token_ciphertext = Column(Text, nullable=False)
+    __table_args__ = (UniqueConstraint('user_id', 'provider'),
+                      CheckConstraint("provider IN ('google','microsoft')", name='cloud_provider'))
+
+
+class CloudOAuthState(Base):
+    __tablename__ = 'cloud_oauth_states'
+    state_hash = Column(String(64), primary_key=True)
+    user_id = fk('users', False)
+    provider = Column(String(20), nullable=False)
+    session_hash = Column(String(64), nullable=False)
+    verifier_ciphertext = Column(Text, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
 
 
 class EvidenceLink(Record, Base):
@@ -401,6 +456,12 @@ class ImprovementPlan(Record, Base):
     responsible_id = fk('users', False)
     due_date = Column(Date, nullable=False)
     status = Column(String(30), nullable=False, default='pendiente')
+
+
+class CloudConfiguration(Record, Base):
+    __tablename__ = 'cloud_configuration'
+    settings_ciphertext = Column(Text, nullable=False)
+    __table_args__ = (CheckConstraint("id = 'application'", name='cloud_configuration_singleton'),)
 
 
 class Audit(Base):

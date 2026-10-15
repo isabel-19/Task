@@ -13,6 +13,7 @@
   import GanttChart from '../components/GanttChart.vue';
   import ImportPanel from '../components/ImportPanel.vue';
   import ParticipantDirectory from '../components/ParticipantDirectory.vue';
+  import { statusOptions } from '../documentWorkflow';
   const route = useRoute(),
     router = useRouter(),
     q = useQuasar();
@@ -30,13 +31,15 @@
     q: route.query.q || '',
     overdue: route.query.overdue || '',
     approval_status: route.query.approval_status || '',
+    preparation_status: route.query.preparation_status || '',
+    attended: route.query.attended || '',
     from: route.query.from || '',
     to: route.query.to || '',
     axis_id: '',
     responsible_id: '',
     year: '',
     status: '',
-    section: '',
+    section: route.query.section || '',
     document_type_id: '',
   });
   const pagination = ref({ page: 1, rowsPerPage: 20, rowsNumber: 0 });
@@ -53,8 +56,26 @@
     actionResource = ref(''),
     importOpen = ref(false),
     participantsOpen = ref(false);
+  const exporting = ref(false);
+  let listPageSize = 20;
   const currentSchema = computed(() => meta.value[selected.value]),
     tabs = computed(() => route.meta.resources.filter((r) => meta.value[r]));
+  const availableFilters = computed(() => {
+    const fields = (mode.value === 'gantt' ? meta.value.tasks : currentSchema.value)?.fields || [];
+    const keys = fields.map((field) => field.key);
+    return ['axis_id', 'process_id', 'responsible_id'].filter(
+      (key) => keys.includes(key) || (key !== 'responsible_id' && keys.includes('project_id')),
+    );
+  });
+  const documentStates = computed(() => statusOptions(lookups.value, filters.value.document_type_id,
+    meta.value.documents?.fields.find((field) => field.key === 'preparation_status')?.options || []));
+  watch(() => filters.value.section, (section) => {
+    if (section === route.query.section) return;
+    filters.value.preparation_status = '';
+    filters.value.approval_status = '';
+    filters.value.attended = '';
+  });
+  watch(() => filters.value.document_type_id, () => { filters.value.preparation_status = ''; });
   const states = computed(
     () =>
       ({
@@ -73,7 +94,7 @@
         deliverables: ['pendiente', 'en_revision', 'observado', 'conforme'],
         evidence: [],
         projects: ['planificado', 'en_progreso', 'en_pausa', 'finalizado'],
-      })[selected.value] ||
+      })[mode.value === 'gantt' ? 'tasks' : selected.value] ||
       currentSchema.value?.fields.find((f) => f.key === 'status')?.options ||
       [],
   );
@@ -92,24 +113,20 @@
     try {
       const result = await api(
         '/' +
-          selected.value +
+          (mode.value === 'gantt' ? 'tasks' : selected.value) +
           '?' +
           query({
             ...filters.value,
             scope: scope.value,
-            page: pagination.value.page,
-            page_size: pagination.value.rowsPerPage,
+            page: mode.value === 'gantt' ? 1 : pagination.value.page,
+            page_size: mode.value === 'gantt' ? 100 : pagination.value.rowsPerPage,
           }),
       );
       if (turn !== sequence) return;
-      rows.value = result.items;
-      pagination.value.rowsNumber = result.total;
+      pagination.value = { ...pagination.value, rowsNumber: result.total };
       if (mode.value === 'gantt') {
-        const tasks = await api(
-          '/tasks?' + query({ ...filters.value, scope: scope.value, page_size: 100 }),
-        );
-        if (turn === sequence) ganttTasks.value = tasks.items;
-      }
+        ganttTasks.value = result.items;
+      } else rows.value = result.items;
     } catch (e) {
       if (turn === sequence) error.value = e.message;
     } finally {
@@ -133,7 +150,9 @@
   function newRecord(resource = selected.value, values = {}) {
     formResource.value = resource;
     formRecord.value = null;
-    preset.value = values;
+    preset.value = resource === 'documents' && filters.value.section
+      ? { section: filters.value.section, ...values }
+      : values;
     formOpen.value = true;
   }
   function edit(record) {
@@ -159,16 +178,32 @@
       await load();
       if (detailOpen.value && detailRecord.value)
         await openId(detailResource.value, detailRecord.value.id);
-      q.notify({ type: 'positive', message: 'Registro guardado y trazabilidad actualizada.' });
+      q.notify({
+        type: 'positive',
+        message: 'Registro guardado y trazabilidad actualizada.',
+      });
     } catch (e) {
       q.notify({ type: 'negative', message: e.message });
     }
   }
   function request(p) {
     pagination.value = { ...p, rowsNumber: pagination.value.rowsNumber };
+    if (mode.value === 'list') listPageSize = p.rowsPerPage;
     load();
   }
+  function setMode(next) {
+    if (next === mode.value) return;
+    if (next === 'gantt' || mode.value === 'gantt') filters.value.status = '';
+    if (next === 'kanban') {
+      listPageSize = pagination.value.rowsPerPage;
+      pagination.value = { ...pagination.value, rowsPerPage: 100 };
+    } else if (mode.value === 'kanban') {
+      pagination.value = { ...pagination.value, rowsPerPage: listPageSize };
+    }
+    mode.value = next;
+  }
   async function exportCsv() {
+    exporting.value = true;
     try {
       await downloadReport(selected.value, {
         ...filters.value,
@@ -176,6 +211,8 @@
       });
     } catch (e) {
       q.notify({ type: 'negative', message: e.message });
+    } finally {
+      exporting.value = false;
     }
   }
   watch(
@@ -190,14 +227,20 @@
     filters.value.status = '';
     filters.value.section = '';
     filters.value.document_type_id = '';
-    mode.value = 'list';
+    setMode('list');
+    for (const key of ['axis_id', 'process_id', 'responsible_id']) {
+      if (!availableFilters.value.includes(key)) filters.value[key] = '';
+    }
     pagination.value.page = 1;
     load();
   });
   watch(
     () => route.query,
-    async (params) => {
-      if (params.scope) scope.value = params.scope;
+    async (params, previous) => {
+      for (const key of ['q', 'overdue', 'approval_status', 'preparation_status', 'attended', 'section', 'from', 'to']) {
+        if (params[key] !== previous[key]) filters.value[key] = String(params[key] || '');
+      }
+      if (params.scope !== previous.scope) scope.value = params.scope || 'personal';
       if (params.resource && tabs.value.includes(params.resource)) selected.value = params.resource;
       if (params.id) await openId(params.resource || selected.value, params.id);
     },
@@ -244,7 +287,7 @@
       >
     </div>
     <p v-if="route.path === '/tramites'" class="module-note">
-      <q-icon name="info_outline" /> Un documento remitido puede seguir pendiente de aprobación.
+      <q-icon name="info_outline" /> Registra la revisión, derivación y atención del expediente.
       Cada actuación conserva la dependencia externa y su historial.
     </p>
     <p v-if="route.path === '/indicadores'" class="module-note">
@@ -261,6 +304,7 @@
           v-for="tab in tabs"
           :key="tab"
           :class="{ active: selected === tab }"
+          :aria-pressed="selected === tab"
           @click="selected = tab"
         >
           {{ meta[tab].label }}</button
@@ -275,6 +319,25 @@
         />
       </div>
       <div class="module-toolbar">
+        <div
+          v-if="mode === 'gantt' && can(['tasks.supervise', 'tasks.team_read', 'admin.write'])"
+          class="segmented"
+        >
+          <button
+            :class="{ active: scope === 'personal' }"
+            :aria-pressed="scope === 'personal'"
+            @click="scope = 'personal'"
+          >
+            Mi espacio
+          </button>
+          <button
+            :class="{ active: scope === 'team' }"
+            :aria-pressed="scope === 'team'"
+            @click="scope = 'team'"
+          >
+            Equipo
+          </button>
+        </div>
         <div v-if="selected === 'tasks'" class="segmented">
           <button
             v-for="view in [
@@ -321,7 +384,7 @@
             icon="view_list"
             aria-label="Vista de lista"
             :color="mode === 'list' ? 'primary' : 'grey'"
-            @click="mode = 'list'"
+            @click="setMode('list')"
           /><q-btn
             v-if="selected === 'tasks'"
             flat
@@ -329,11 +392,7 @@
             icon="view_kanban"
             aria-label="Vista Kanban"
             :color="mode === 'kanban' ? 'primary' : 'grey'"
-            @click="
-              mode = 'kanban';
-              pagination.rowsPerPage = 100;
-              load();
-            "
+            @click="setMode('kanban')"
           /><q-btn
             v-if="selected === 'projects'"
             flat
@@ -341,19 +400,26 @@
             icon="date_range"
             aria-label="Vista Gantt"
             :color="mode === 'gantt' ? 'primary' : 'grey'"
-            @click="mode = 'gantt'"
+            @click="setMode('gantt')"
           />
         </div>
-        <q-btn flat no-caps icon="file_download" label="Exportar" @click="exportCsv" /><q-btn
+        <q-btn
+          v-if="currentSchema?.can_export ?? can('reports.read')"
           flat
-          round
-          icon="refresh"
-          aria-label="Actualizar listado"
-          @click="load"
-        />
+          no-caps
+          icon="file_download"
+          label="Exportar"
+          :loading="exporting"
+          @click="exportCsv"
+        /><q-btn flat round icon="refresh" aria-label="Actualizar listado" @click="load" />
       </div>
       <div class="module-filters">
-        <FilterBar v-model="filters" :lookups="lookups" :expanded="expanded" />
+        <FilterBar
+          v-model="filters"
+          :lookups="lookups"
+          :expanded="expanded"
+          :available="availableFilters"
+        />
         <div class="filter-bar q-mt-sm">
           <q-select
             v-if="states.length"
@@ -362,7 +428,9 @@
             dense
             clearable
             label="Todos los estados"
-            :options="states"
+            :options="states.map((value) => ({ value, label: human(value) }))"
+            emit-value
+            map-options
             class="filter-select"
           /><q-select
             v-if="selected === 'documents'"
@@ -374,6 +442,13 @@
             map-options
             label="Tipo documental"
             :options="lookups['document-types'] || []"
+            class="filter-select"
+          /><q-select
+            v-if="selected === 'documents' && (!filters.section || filters.section === 'emitidos')"
+            v-model="filters.preparation_status"
+            outlined dense clearable emit-value map-options
+            label="Estado de envío"
+            :options="documentStates.map((value) => ({ value, label: human(value) }))"
             class="filter-select"
           /><q-checkbox
             v-if="['tasks', 'deliverables', 'cases', 'agreements'].includes(selected)"
@@ -406,7 +481,7 @@
         :schema="currentSchema"
         :rows="rows"
         :loading="loading"
-        :pagination="pagination"
+        v-model:pagination="pagination"
         @open="open"
         @request="request"
       />
@@ -448,8 +523,9 @@
       </div>
       <div v-if="mode === 'gantt'">
         <p class="info-note q-ma-lg">
-          Cronograma de hasta 100 actividades filtradas. Abre una barra para consultar responsables,
-          dependencias, hitos y avances.
+          {{ scope === 'team' ? 'Actividades del equipo' : 'Actividades de mi espacio' }}
+          · {{ ganttTasks.length }} de {{ pagination.rowsNumber }} actividades. Abre una barra para
+          consultar responsables, dependencias y avances. Se muestran hasta 100 actividades.
         </p>
         <GanttChart
           :tasks="ganttTasks"

@@ -21,7 +21,7 @@ export const modules = [
     icon: 'task_alt',
     permission: 'tasks.read',
     subtitle: 'Organiza, avanza y cierra con evidencia',
-    resources: ['tasks', 'task-assignments', 'task-updates', 'closure-approvals'],
+    resources: ['tasks'],
   },
   {
     path: '/registro',
@@ -109,17 +109,15 @@ export const entityRoutes = Object.fromEntries(
 );
 entityRoutes['tasks'] = '/tareas';
 export const titles = { pending: 'Pendientes', overdue: 'Vencidas' };
-export function human(value) {
-  return String(value ?? '')
-    .replaceAll('_', ' ')
-    .replace(/^\w/, (c) => c.toUpperCase());
-}
+export { human, fieldLabel } from './format';
 export function dateLabel(value) {
   if (!value) return '—';
   const d = new Date(value.includes('T') ? value : value + 'T12:00:00');
   return isNaN(d)
     ? value
-    : new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }).format(
-        d,
-      );
+    : new Intl.DateTimeFormat('es-PE', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }).format(d);
 }

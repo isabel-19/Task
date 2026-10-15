@@ -5,14 +5,17 @@ import LoginView from './views/LoginView.vue';
 import DashboardView from './views/DashboardView.vue';
 import ModuleView from './views/ModuleView.vue';
 import ReportsView from './views/ReportsView.vue';
+import TasksView from './views/TasksView.vue';
+import CloudAccountsView from './views/CloudAccountsView.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/login', component: LoginView },
+    { path: '/cuentas', component: CloudAccountsView, meta: { label: 'Cuentas vinculadas', permission: 'tasks.read' } },
     ...modules.map((m) => ({
       path: m.path,
-      component: m.path === '/' ? DashboardView : m.path === '/reportes' ? ReportsView : ModuleView,
+      component: m.path === '/' ? DashboardView : m.path === '/reportes' ? ReportsView : m.path === '/tareas' ? TasksView : ModuleView,
       meta: m,
     })),
     { path: '/:pathMatch(.*)*', redirect: '/' },

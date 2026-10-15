@@ -16,7 +16,7 @@ El libro no suministra correos institucionales en las columnas utilizadas. Las c
 
 Los accesos están en `.local/participantes-accesos.txt`; su versión estructurada es `.local/participants-access.json`. Introduce el identificador completo y su contraseña en el formulario de inicio de sesión. Conserva esos archivos en esta instalación; no los publiques. Administración puede sustituir el identificador por un correo institucional y renovar la contraseña cuando se confirme la identidad.
 
-En **Tareas → Participantes del equipo**, busca un nombre y pulsa **Asignar tarea**. Los nombres también están disponibles como responsable y como participantes adicionales. El jefe actual puede revisar esas tareas en **Equipo**. La identidad del jefe entre los nombres del libro debe confirmarse: la importación no deduce ese privilegio a partir de nombres o de la hoja temática Roles.
+En **Tareas → Asignar tarea**, busca el nombre en **Responsable**. La tarea aparece en **Mis tareas** de la persona seleccionada. El jefe puede revisarla en **Tareas que asigné** o **Todas las tareas**. La identidad del jefe entre los nombres del libro debe confirmarse: la importación no deduce ese privilegio a partir de nombres o de la hoja temática Roles.
 
 El aviso de la aplicación distingue la instalación con participantes del Excel de una demostración compuesta únicamente por registros ficticios. Las cuentas y tareas de demostración anteriores se conservan.
 
