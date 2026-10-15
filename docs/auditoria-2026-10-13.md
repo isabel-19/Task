@@ -1,7 +1,7 @@
 # Auditoría funcional y visual de TASK PAGINA WEB
 
-**Fecha:** 13 de octubre de 2026, America/Lima.  
-**Aplicación:** ROADMAP OGC · UNAJMA.  
+**Fecha:** 13 de octubre de 2026, America/Lima.<br>
+**Aplicación:** ROADMAP OGC · UNAJMA.<br>
 **Resultado:** 12 hallazgos confirmados: 1 de prioridad alta, 9 de prioridad media y 2 de prioridad baja. Los flujos principales funcionan, pero la paginación, algunas búsquedas y el tratamiento de fechas necesitan correcciones.
 
 ## Método y entorno
@@ -173,10 +173,10 @@ La prioridad **alta** identifica una función que impide administrar o consultar
 
 ### H06 — Mensajes de validación poco utilizables
 
-**Reproducción A:** abrir Registrar mi avance y confirmar sin comentario ni evidencia.  
+**Reproducción A:** abrir Registrar mi avance y confirmar sin comentario ni evidencia.<br>
 **Resultado:** `body.comment: Field required`, `body.evidence.title: Field required` y `body.evidence.url: Field required`.
 
-**Reproducción B:** previsualizar un CSV de documentos con solo número y título.  
+**Reproducción B:** previsualizar un CSV de documentos con solo número y título.<br>
 **Resultado:** se presenta una lista JSON extensa con claves `type`, `loc`, `msg`, `input` y enlaces de errores de Pydantic.
 
 **Esperado:** mensajes en español asociados a los campos visibles, por ejemplo “Ingresa un comentario” y “Adjunta el enlace de la evidencia”. Para importación, indicar fila, columna y corrección necesaria.
