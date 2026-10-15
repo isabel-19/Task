@@ -2,7 +2,7 @@
 
 Opción elegida por el usuario el 15 de octubre de 2026. `render.yaml` publica la interfaz y la API juntas en una instancia Free. Supabase Free conserva PostgreSQL y las evidencias en un bucket privado. Los archivos no dependen del disco temporal de Render. No se contrató infraestructura de pago.
 
-Estado: preparación local implementada; despliegue y conexión real a Supabase pendientes. Render tiene sesión iniciada en el navegador; todavía se necesitan los accesos de GitHub/Supabase y la publicación del código actualizado.
+Estado: código actualizado publicado en el repositorio existente `isabel-19/Task`; Render tiene sesión iniciada y formulario preparado con Free ($0/mes), Docker, rama principal y salud `/api/health`. No se envió el despliegue sin una base configurada. Falta iniciar sesión en Supabase para crear/verificar PostgreSQL y Storage privados y terminar las variables secretas. Se utilizó el acceso Git existente del equipo; no hace falta otra cuenta de GitHub para subir este código.
 
 ## Recursos y límites
 

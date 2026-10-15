@@ -2,7 +2,7 @@
 
 Estado al 15 de octubre de 2026: ejecución local verificada con SQLite y revisión de navegador realizada en los flujos de tareas y Google. PostgreSQL/Supabase, GitHub y alojamiento público siguen sin un despliegue verificado. Hay un contenedor y una alternativa de Render con almacenamiento persistente preparados; no existe todavía una URL institucional activa. Consulta [publicación web](publicacion-web.md) para la configuración y las comprobaciones pendientes.
 
-El entorno protege `.git` contra escritura dentro del sandbox. El 15 de octubre se autorizó ejecutar `git add` y `git commit` fuera de él y se preparó el código actualizado para Render Free. No se modificaron permisos del directorio. El push al repositorio existente y la publicación se deben comprobar antes de declarar disponible la plataforma.
+El entorno protege `.git` contra escritura dentro del sandbox. El 15 de octubre se autorizó ejecutar `git add`, `git commit` y el push fuera de él. Se confirmó la subida del código actualizado al repositorio existente. No se modificaron permisos del directorio. Render tiene el formulario Free preparado; la plataforma todavía requiere configurar Supabase y verificar el despliegue antes de declarar disponibilidad pública.
 
 ## Configuración
 
