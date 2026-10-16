@@ -446,6 +446,29 @@ CASE_TRANSITIONS = {
 }
 
 
+def sync_follow_up_case(db, user, document):
+    """A sent document that needs a reply gets a trámite, so it shows in Seguimiento de trámites."""
+    if document.section != 'emitidos' or document.followup_frequency in (None, 'no_es_necesario'):
+        return
+    case = db.scalar(select(m.Case).where(m.Case.document_id == document.id))
+    if case:
+        if case.status == 'derivacion' and document.due_date and case.due_date != document.due_date:
+            before = serialize(case)
+            case.due_date = document.due_date
+            touch(db, user, 'cases', case, 'follow_up_deadline', before)
+        return
+    number = f'SEG-{document.number}'[:80]
+    if db.scalar(select(m.Case.id).where(m.Case.number == number)):
+        number = f'SEG-{document.id}'[:80]
+    case = m.Case(title=document.title[:250], number=number, document_id=document.id, responsible_id=document.responsible_id,
+                  current_department=document.recipient, status='derivacion', due_date=document.due_date, modified_by=user.id)
+    db.add(case)
+    db.flush()
+    db.add(m.CaseEvent(case_id=case.id, actor_id=user.id, status='derivacion', department=document.recipient,
+                       note='Documento enviado que espera respuesta.', modified_by=user.id))
+    audit(db, user, 'cases', case, 'create')
+
+
 class StageInput(StrictInput):
     revision: int
     status: str
@@ -668,6 +691,8 @@ def create_record(name: str, body: dict, user=Depends(current_user), db=Depends(
     audit(db, user, name, record, 'create')
     if name == 'documents':
         save_link(db, user, record, document_link)
+        db.flush()
+        sync_follow_up_case(db, user, record)
     if name == 'tasks':
         for identifier in set(member_ids) - {record.responsible_id}:
             assignment = m.TaskAssignment(task_id=record.id, user_id=identifier, assigned_by=user.id, modified_by=user.id)
@@ -738,6 +763,8 @@ def edit_record(name: str, identifier: str, body: dict, user=Depends(current_use
     audit(db, user, name, record, 'update', before)
     if name == 'documents':
         save_link(db, user, record, document_link)
+        db.flush()
+        sync_follow_up_case(db, user, record)
     if name == 'meetings':
         after = serialize(record)
         if any(after.get(key) != before.get(key) for key in ('date', 'location', 'title', 'status')):

@@ -26,7 +26,7 @@
       @update:model-value="(v) => set('q', v, modelValue)"
       ><template #prepend><q-icon name="search" size="20px" /></template
     ></q-input>
-    <SearchSelect use-input fill-input
+    <SearchSelect use-input
       v-if="available.includes('axis_id')"
       outlined
       dense
@@ -39,7 +39,7 @@
       class="filter-select"
       @update:model-value="(v) => set('axis_id', v, modelValue)"
     />
-    <SearchSelect use-input fill-input
+    <SearchSelect use-input
       outlined
       dense
       clearable
@@ -66,7 +66,7 @@
       @update:model-value="(v) => set('year', v, modelValue)"
     />
     <template v-if="expanded">
-      <SearchSelect use-input fill-input
+      <SearchSelect use-input
         outlined
         dense
         clearable
@@ -83,7 +83,7 @@
         class="filter-select"
         @update:model-value="(v) => set('month', v, modelValue)"
       />
-      <SearchSelect use-input fill-input
+      <SearchSelect use-input
         outlined
         dense
         clearable

@@ -20,6 +20,8 @@ const schema = { label: 'Documentos', fields: [
   { key: 'responsible_id', label: 'Responsable OGC', lookup: 'users', required: true },
   { key: 'preparation_status', label: 'Estado de envío', type: 'text', default: 'por_inicio', options: ['por_inicio', 'en_redaccion', 'listo_para_envio', 'enviado_digital', 'enviado_fisico', 'enviado_fisico_y_digital', 'anulado'] },
   { key: 'sent_date', label: 'Fecha de envío', type: 'date', nullable: true },
+  { key: 'due_date', label: 'Fecha límite de atención', type: 'date', nullable: true },
+  { key: 'followup_frequency', label: 'Frecuencia de seguimiento', options: ['diaria', 'semanal', 'quincenal', 'no_es_necesario'], nullable: true },
   { key: 'intake_format', label: 'Formato de recepción', options: ['digital', 'fisico', 'ambos'], nullable: true },
   { key: 'url', label: 'Enlace del documento', type: 'text' },
   { key: 'access_confirmed', type: 'boolean' },
@@ -109,6 +111,20 @@ describe('Registro Digital desde un único formulario', () => {
     expect(body.project_id).toBeUndefined();
   });
 
+  it('ofrece abrir el enlace solo cuando ya es una fuente admitida', async () => {
+    api.mockResolvedValue({ automatic: true, number: 'CARTA N° 502-2026-UNAJMA-OGC' });
+    await open();
+    await vi.waitFor(() => expect(input('Número').readOnly).toBe(true));
+    const openLink = () => [...document.querySelectorAll('a')].find((a) => a.textContent.includes('Abrir enlace'));
+    expect(openLink()).toBeUndefined();
+    await fill('Enlace del documento', 'https://unajma.edu.pe.evil.invalid/documento');
+    expect(openLink()).toBeUndefined();
+    await fill('Enlace del documento', 'https://docs.google.com/document/d/ficticio/edit');
+    await vi.waitFor(() => expect(openLink()?.getAttribute('href')).toBe('https://docs.google.com/document/d/ficticio/edit'));
+    expect(openLink().getAttribute('target')).toBe('_blank');
+    expect(openLink().getAttribute('rel')).toContain('noopener');
+  });
+
   it('impide guardar un enlace ajeno a las fuentes institucionales admitidas', async () => {
     api.mockResolvedValue({ automatic: true, number: 'CARTA N° 501-2026-UNAJMA-OGC' });
     await open();
@@ -142,18 +158,41 @@ describe('Registro Digital desde un único formulario', () => {
       ? { automatic: true, number: 'CARTA N° 501-2026-UNAJMA-OGC' } : { id:'doc' }));
     await open();
     await vi.waitFor(() => expect(input('Número').value).toContain('501'));
-    expect(input('Fecha de envío').value).toBe('');
+    expect([...document.querySelectorAll('label')].some((label) => label.textContent.includes('Fecha de envío'))).toBe(false);
     await fill('Asunto del documento', 'Entrega física ficticia');
     await choose('Destinatario', 'Rectorado');
+    await fill('Fecha del documento', '2026-10-12');
     await choose('Estado de envío', 'Enviado físico');
-    await fill('Fecha de envío', '2026-10-12');
     await fill('Enlace del documento', 'https://drive.google.com/file/d/copia/view');
     await submit();
     await vi.waitFor(() => expect(api.mock.calls.some(([, options]) => options?.method === 'POST')).toBe(true));
     const {body} = api.mock.calls.find(([, options]) => options?.method === 'POST')[1];
     expect(body.preparation_status).toBe('enviado_fisico');
-    expect(body.sent_date).toBe('2026-10-12');
+    // One date serves as the document and sending date; the form no longer asks for both.
+    expect(body.date).toBe('2026-10-12');
+    expect(body.sent_date).toBeUndefined();
     expect(body.approval_status).toBeUndefined();
     expect(document.body.textContent).not.toContain('Aprobación');
+  });
+
+  it('pide seguimiento solo cuando el documento lo necesita y lo limpia si no', async () => {
+    api.mockImplementation((path) => Promise.resolve(path.includes('next-number')
+      ? { automatic: true, number: 'CARTA N° 503-2026-UNAJMA-OGC' } : { id: 'doc' }));
+    await open();
+    await vi.waitFor(() => expect(input('Número').value).toContain('503'));
+    const hasLabel = (text) => [...document.querySelectorAll('.q-field__label, label')].some((el) => el.textContent.includes(text));
+    expect(hasLabel('Fecha límite de respuesta')).toBe(false);
+    const toggle = () => [...document.querySelectorAll('.q-checkbox')].find((el) => el.textContent.includes('necesita seguimiento'));
+    toggle().click();
+    await vi.waitFor(() => expect(hasLabel('Fecha límite de respuesta')).toBe(true));
+    toggle().click();
+    await vi.waitFor(() => expect(hasLabel('Fecha límite de respuesta')).toBe(false));
+    await fill('Asunto del documento', 'Carta sin seguimiento');
+    await choose('Destinatario', 'Rectorado');
+    await submit();
+    await vi.waitFor(() => expect(api.mock.calls.some(([, options]) => options?.method === 'POST')).toBe(true));
+    const { body } = api.mock.calls.find(([, options]) => options?.method === 'POST')[1];
+    expect(body.followup_frequency).toBeNull();
+    expect(body.due_date).toBeNull();
   });
 });

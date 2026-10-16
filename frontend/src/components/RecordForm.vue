@@ -23,6 +23,9 @@
     numberLoading = ref(false),
     numberError = ref('');
   let numberRequest = 0;
+  let numberInput = null;
+  // Switching numbering on or off must clear a message left by the previous mode.
+  watch(automaticNumber, () => numberInput?.resetValidation());
   const documentStates = computed(() => {
     const states = statusOptions(props.lookups, form.document_type_id,
       props.schema?.fields?.find((field) => field.key === 'preparation_status')?.options || []);
@@ -35,21 +38,41 @@
     const fields = props.schema?.fields || [];
     if (!isDocument.value) return fields;
     const order = ['document_type_id', 'section', 'number', 'axis_id', 'title', 'reference_text', 'date', 'sender', 'recipient', 'responsible_id', 'drafting_assistant_id', 'intake_format', 'notebook_number', 'preparation_status', 'sent_date', 'due_date', 'priority', 'followup_frequency', 'receipt_number', 'attended', 'email_url', 'comments'];
-    return fields.filter((field) => !['url', 'access_confirmed', 'project_id', 'reference_id', 'year'].includes(field.key) &&
+    return fields.filter((field) => !['url', 'access_confirmed', 'project_id', 'reference_id', 'year', 'email_url'].includes(field.key) &&
       !(field.key === 'sender' && form.section === 'emitidos') &&
-      !(['preparation_status', 'sent_date'].includes(field.key) && form.section !== 'emitidos') &&
+      field.key !== 'sent_date' &&
+      !(field.key === 'preparation_status' && form.section !== 'emitidos') &&
       !(['intake_format', 'notebook_number'].includes(field.key) && form.section !== 'recibidos') &&
       !(field.key === 'drafting_assistant_id' && !isMinutes.value))
       .map((field) => ({ ...field, label: ({ title: 'Asunto del documento', axis_id: 'Eje temático',
         date: form.section === 'recibidos' ? 'Fecha de recepción' : isMinutes.value ? 'Fecha de reunión' : 'Fecha del documento',
         responsible_id: isMinutes.value ? 'Representante OGC en la reunión' : form.section === 'emitidos' ? 'Remitente (personal OGC)' : 'Responsable de atención OGC',
         sender: 'Entidad remitente', recipient: isMinutes.value ? 'Unidad orgánica que convocó a reunión' : form.section === 'recibidos' ? 'Unidad orgánica a la que se derivó' : 'Destinatario / oficina',
-        due_date: isMinutes.value ? 'Fecha límite para compartir el acta' : 'Fecha límite de atención',
+        due_date: isMinutes.value ? 'Fecha límite para compartir el acta' : form.section === 'emitidos' ? 'Fecha límite de respuesta' : 'Fecha límite de atención',
         comments: isMinutes.value ? 'Seguimiento a acuerdos / comentarios' : 'Comentarios / tareas pendientes',
       })[field.key] || field.label,
       options: field.key === 'preparation_status' ? documentStates.value : field.options,
-      required: field.key === 'sent_date' ? isSent(form.preparation_status) : field.key === 'preparation_status' ? true : field.required }))
+      required: form.section === 'emitidos'
+        ? ['document_type_id', 'title', 'recipient'].includes(field.key) || (field.key === 'due_date' && form.followup_needed)
+        : field.required }))
       .sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
+  });
+  // A letter needs only type, subject and recipient; the rest sits under "Más detalles".
+  // Follow-up fields appear only when the document says it expects a reply.
+  const coreKeys = ['document_type_id', 'number', 'title', 'date', 'recipient'];
+  const followKeys = ['due_date', 'followup_frequency'];
+  const followupCheckbox = { key: 'followup_needed', type: 'boolean', label: 'Este documento necesita seguimiento (espera respuesta)' };
+  const fieldSections = computed(() => {
+    const fields = visibleFields.value;
+    if (!isDocument.value || form.section !== 'emitidos') return [{ key: 'all', fields, collapsible: false }];
+    const core = fields.filter((field) => coreKeys.includes(field.key));
+    const follow = fields.filter((field) => followKeys.includes(field.key));
+    const details = fields.filter((field) => !coreKeys.includes(field.key) && !followKeys.includes(field.key));
+    return [
+      { key: 'core', fields: [...core, followupCheckbox], collapsible: false },
+      { key: 'follow', fields: form.followup_needed ? follow : [], collapsible: false },
+      { key: 'details', title: 'Más detalles (opcionales)', fields: details, collapsible: true },
+    ].filter((section) => section.fields.length);
   });
   const officeSearch = reactive({ recipient: '', sender: '' });
   function officeOptions(key) {
@@ -60,6 +83,8 @@
     return options.filter((option) => normalize(option.label).includes(normalize(officeSearch[key])));
   }
   const hasDocumentLink = computed(() => isDocument.value && props.schema?.fields.some((field) => field.key === 'url'));
+  // The button opens only links that already pass the same rule that guards saving.
+  const openableLink = computed(() => Boolean(form.url?.trim()) && linkRule(form.url) === true);
   watch(
     () => props.modelValue,
     (open) => {
@@ -91,6 +116,7 @@
                   ? 1
                   : '');
       }
+      form.followup_needed = Boolean(props.record?.followup_frequency && props.record.followup_frequency !== 'no_es_necesario');
       if (isDocument.value && !props.record) {
         if ('section' in form) form.section = props.preset?.section || 'emitidos';
         if ('responsible_id' in form) form.responsible_id = props.preset?.responsible_id || session.user?.id || '';
@@ -99,6 +125,9 @@
       }
     },
   );
+  watch(() => form.followup_needed, (value) => {
+    if (value && !form.followup_frequency) form.followup_frequency = 'semanal';
+  });
   watch(() => form.date, (value) => {
     if (isDocument.value && !props.record && /^\d{4}-\d{2}-\d{2}$/.test(value)) form.year = Number(value.slice(0, 4));
   });
@@ -157,6 +186,11 @@
         }
         if (field.type === 'number') value = Number(value);
         body[field.key] = value;
+      }
+      // Hidden follow-up fields must be cleared explicitly, or an old deadline would survive the save.
+      if (isDocument.value && form.section === 'emitidos' && !form.followup_needed) {
+        body.followup_frequency = null;
+        body.due_date = null;
       }
       if (isDocument.value && !props.record) body.automatic_number = automaticNumber.value;
       if (props.resource === 'tasks' && !props.record) body.member_ids = form.member_ids;
@@ -240,9 +274,12 @@
           <q-banner v-if="numberError" class="error-banner q-mb-md" role="alert">{{ numberError }}</q-banner>
           <q-checkbox v-if="isDocument && !record && numberPreview?.automatic" v-model="automaticNumber"
             label="Asignar número automáticamente" class="q-mb-md" />
+          <template v-for="section in fieldSections" :key="section.key">
+          <component :is="section.collapsible ? 'q-expansion-item' : 'div'"
+            v-bind="section.collapsible ? { label: section.title, class: 'record-more', headerClass: 'record-more-header' } : { class: 'record-section' }">
           <div class="form-grid">
-            <template v-for="field in visibleFields" :key="field.key"
-              ><q-select
+            <template v-for="field in section.fields" :key="field.key"
+              ><q-select hide-bottom-space
                 v-if="isDocument && ['recipient', 'sender'].includes(field.key)"
                 v-model="form[field.key]" outlined emit-value map-options clearable use-input fill-input hide-selected
                 :input-debounce="150" :label="field.label + (field.required ? ' *' : '')"
@@ -252,7 +289,8 @@
               ><q-checkbox
                 v-else-if="field.type === 'boolean'"
                 v-model="form[field.key]"
-                :label="field.label" /><SearchSelect use-input fill-input
+                :class="{ 'full-field': field.key === 'followup_needed' }"
+                :label="field.label" /><SearchSelect use-input hide-bottom-space
                 v-else-if="field.lookup"
                 v-model="form[field.key]"
                 outlined
@@ -267,7 +305,7 @@
                       : field.lookup
                   ] || []
                 "
-                :rules="rules(field)" /><SearchSelect use-input fill-input
+                :rules="rules(field)" /><SearchSelect use-input hide-bottom-space
                 v-else-if="field.options?.length"
                 v-model="form[field.key]"
                 outlined
@@ -276,8 +314,9 @@
                 :options="field.options.map((value) => ({ value, label: human(value) }))"
                 emit-value
                 map-options
-                :rules="rules(field)" /><q-input
+                :rules="rules(field)" /><q-input hide-bottom-space
                 v-else
+                :ref="(el) => { if (field.key === 'number') numberInput = el; }"
                 :model-value="isDocument && field.key === 'number' && automaticNumber && !record ? numberPreview?.number || '' : form[field.key]"
                 @update:model-value="(value) => form[field.key] = value"
                 :readonly="isDocument && field.key === 'number' && automaticNumber && !record"
@@ -300,15 +339,27 @@
                 :step="field.type === 'number' ? 'any' : undefined"
             /></template>
           </div>
+          </component>
+          </template>
           <section v-if="hasDocumentLink" class="document-link-panel">
-            <div class="document-link-heading"><q-icon name="link" size="22px" /><div><h3>Documento digital</h3><p>Pega aquí el enlace de tu archivo, como en el registro de seguimiento.</p></div></div>
-            <q-input v-model="form.url" outlined label="Enlace del documento" placeholder="https://drive.google.com/…"
-              type="url" :rules="[linkRule]" hint="Google Drive, Google Docs o sitio institucional de UNAJMA." />
-            <q-checkbox v-if="form.url" v-model="form.access_confirmed" label="Confirmo que el equipo OGC puede abrir el enlace" />
-            <p class="document-link-note">{{ record ? 'Si cambias el enlace, se guarda una nueva versión y se conserva la anterior.' : 'El enlace se guardará como la primera versión del documento. También puedes completar el registro sin enlace y agregarlo después.' }}</p>
+            <div class="document-link-heading">
+              <span class="document-link-icon"><q-icon name="link" size="20px" /></span>
+              <div>
+                <h3>Documento digital</h3>
+                <p>Pega el enlace de tu archivo de Drive o Docs.</p>
+              </div>
+            </div>
+            <div class="document-link-row">
+              <q-input v-model="form.url" outlined dense label="Enlace del documento" placeholder="https://drive.google.com/…"
+                type="url" :rules="[linkRule]" hide-bottom-space class="document-link-input" />
+              <q-btn v-if="openableLink" :href="form.url.trim()" target="_blank" rel="noopener noreferrer"
+                outline no-caps color="primary" icon="open_in_new" label="Abrir enlace" class="document-link-open" />
+            </div>
+            <q-checkbox v-if="form.url" v-model="form.access_confirmed" dense label="Confirmo que el equipo OGC puede abrir el enlace" />
+            <p class="document-link-note">Admitidos: Google Drive, Google Docs o sitio institucional de UNAJMA. {{ record ? 'Si cambias el enlace, se guarda una nueva versión y se conserva la anterior.' : 'El enlace se guardará como la primera versión del documento. También puedes completar el registro sin enlace y agregarlo después.' }}</p>
           </section>
           <div v-if="resource === 'tasks' && !record" class="q-gutter-y-md q-mt-md">
-            <SearchSelect use-input hide-selected
+            <SearchSelect use-input hide-bottom-space hide-selected
               v-model="form.member_ids"
               outlined
               multiple
@@ -331,7 +382,7 @@
             </p>
           </div>
           <div v-if="resource === 'meetings' && !record" class="q-gutter-y-md q-mt-md">
-            <SearchSelect use-input hide-selected
+            <SearchSelect use-input hide-bottom-space hide-selected
               v-model="form.attendee_ids"
               outlined
               multiple

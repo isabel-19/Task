@@ -213,7 +213,7 @@
           Abre la evidencia y revisa el aporte antes de confirmar. Una observación permite enviar un
           nuevo avance con la corrección.
         </p>
-        <SearchSelect use-input fill-input
+        <SearchSelect use-input
           v-model="result"
           outlined
           label="Resultado de la revisión"

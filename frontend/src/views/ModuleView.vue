@@ -31,6 +31,7 @@
   const filters = ref({
     q: route.query.q || '',
     overdue: route.query.overdue || '',
+    awaiting_reply: route.query.awaiting_reply || '',
     approval_status: route.query.approval_status || '',
     preparation_status: route.query.preparation_status || '',
     attended: route.query.attended || '',
@@ -238,7 +239,7 @@
   watch(
     () => route.query,
     async (params, previous) => {
-      for (const key of ['q', 'overdue', 'approval_status', 'preparation_status', 'attended', 'section', 'from', 'to']) {
+      for (const key of ['q', 'overdue', 'awaiting_reply', 'approval_status', 'preparation_status', 'attended', 'section', 'from', 'to']) {
         if (params[key] !== previous[key]) filters.value[key] = String(params[key] || '');
       }
       if (params.scope !== previous.scope) scope.value = params.scope || 'personal';
@@ -422,7 +423,7 @@
           :available="availableFilters"
         />
         <div class="filter-bar q-mt-sm">
-          <SearchSelect use-input fill-input
+          <SearchSelect use-input
             v-if="states.length"
             v-model="filters.status"
             outlined
@@ -433,7 +434,7 @@
             emit-value
             map-options
             class="filter-select"
-          /><SearchSelect use-input fill-input
+          /><SearchSelect use-input
             v-if="selected === 'documents'"
             v-model="filters.document_type_id"
             outlined
@@ -444,7 +445,7 @@
             label="Tipo documental"
             :options="lookups['document-types'] || []"
             class="filter-select"
-          /><SearchSelect use-input fill-input
+          /><SearchSelect use-input
             v-if="selected === 'documents' && (!filters.section || filters.section === 'emitidos')"
             v-model="filters.preparation_status"
             outlined dense clearable emit-value map-options
@@ -457,6 +458,12 @@
             true-value="true"
             false-value=""
             label="Solo vencidos"
+          /><q-checkbox
+            v-if="selected === 'documents'"
+            v-model="filters.awaiting_reply"
+            true-value="true"
+            false-value=""
+            label="Esperando respuesta"
           /><q-space /><q-btn
             flat
             no-caps

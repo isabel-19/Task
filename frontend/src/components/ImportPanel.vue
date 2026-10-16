@@ -126,7 +126,7 @@
       referencias y duplicados antes de guardar. No se modifican los archivos originales.
     </p>
     <div class="form-grid">
-      <SearchSelect use-input fill-input
+      <SearchSelect use-input
         v-model="entity"
         outlined
         emit-value
@@ -146,7 +146,7 @@
           source = null;
           preview = null;
         "
-      /><SearchSelect use-input fill-input
+      /><SearchSelect use-input
         v-if="source?.sheets.length > 1"
         v-model="sheet"
         outlined
@@ -171,14 +171,14 @@
       </p>
       <div v-for="field in fields" :key="field.key" class="import-map-row">
         <b>{{ field.label }}{{ field.required ? ' *' : '' }}</b
-        ><SearchSelect use-input fill-input
+        ><SearchSelect use-input
           v-model="mapping[field.key]"
           dense
           outlined
           clearable
           :options="source.headers"
           label="Columna de origen"
-        /><SearchSelect use-input fill-input
+        /><SearchSelect use-input
           v-if="field.lookup"
           v-model="constants[field.key]"
           dense
@@ -188,7 +188,7 @@
           map-options
           :options="lookups[field.lookup] || []"
           label="Registro constante"
-        /><SearchSelect use-input fill-input
+        /><SearchSelect use-input
           v-else-if="field.options?.length"
           v-model="constants[field.key]"
           dense

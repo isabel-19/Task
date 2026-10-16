@@ -1,7 +1,7 @@
 """Document links and independent annual OGC numbering, based on the reference register."""
 import re
 import unicodedata
-from sqlalchemy import select, case
+from sqlalchemy import case, event, select
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from fastapi import HTTPException
@@ -34,7 +34,8 @@ def series_key(name):
 
 def format_number(series, year, number):
     _, prefix, suffix = SERIES[series]
-    return f'{prefix} N° {number:03d}-{year}-{suffix}'
+    # Two digits minimum: 01, 02 … 42, 100. Numbers come only from the register, never from a stored counter.
+    return f'{prefix} N° {number:02d}-{year}-{suffix}'
 
 
 def document_choices(db):
@@ -53,6 +54,12 @@ def document_fields(db, raw, existing=None):
         from .document_workflow import status_options
         typ = get_record(db, m.DocumentType, raw.get('document_type_id'))
         raw['preparation_status'] = status_options(typ.name)[0]
+    if section == 'emitidos':
+        from .document_workflow import is_sent
+        state = raw.get('preparation_status', existing.preparation_status if existing else None)
+        if is_sent(state) and not raw.get('sent_date') and not (existing and existing.sent_date):
+            # One date is enough for a letter: the document date is also the sending date.
+            raw['sent_date'] = raw.get('date') or (existing.date if existing else None)
     if section == 'emitidos' and not raw.get('sender'):
         identifier = raw.get('responsible_id', existing.responsible_id if existing else None)
         if identifier and (not existing or identifier != existing.responsible_id):
@@ -100,6 +107,25 @@ def next_number(db, type_id, year, section='emitidos', reserve=False):
         current = db.get(m.DocumentSequence, (key, year))
         number = max(floor, current.last_number if current else 0) + 1
     return {'automatic': True, 'number': format_number(key, year, number), 'sequence': number, 'series': key, 'year': year}
+
+
+def resync_sequence(db, key, year):
+    """Set the counter back to the highest registered number, so a removed number is issued again."""
+    table = m.DocumentSequence.__table__
+    floor = last_registered(db, key, year)
+    dialect = db.get_bind().dialect if hasattr(db, 'get_bind') else db.dialect
+    insert = postgres_insert if dialect.name == 'postgresql' else sqlite_insert
+    statement = insert(table).values(series=key, year=year, last_number=floor)
+    db.execute(statement.on_conflict_do_update(index_elements=[table.c.series, table.c.year],
+                                               set_={'last_number': floor}))
+
+
+@event.listens_for(m.Document, 'after_delete')
+def release_removed_number(mapper, connection, document):
+    typ = connection.execute(select(m.DocumentType.name).where(m.DocumentType.id == document.document_type_id)).scalar()
+    key = series_key(typ) if typ else None
+    if key and document.section == 'emitidos':
+        resync_sequence(connection, key, document.year)
 
 
 def document_input(body, existing=None):

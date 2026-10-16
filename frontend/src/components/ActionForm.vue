@@ -291,7 +291,7 @@
                 :rules="rules(field)"
                 :options="lookups[field.lookup] || []"
                 :multiple="field.multiple || false"
-                :use-chips="field.multiple || false" /><SearchSelect use-input fill-input
+                :use-chips="field.multiple || false" /><SearchSelect use-input
                 v-else-if="field.options"
                 v-model="form[field.key]"
                 outlined

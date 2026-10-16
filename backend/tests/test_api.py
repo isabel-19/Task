@@ -374,6 +374,35 @@ class APITest(unittest.TestCase):
         self.sign_in('member@example.invalid')
         self.assertEqual(self.client.get('/api/reports/import-batches.csv').status_code, 403)
 
+    def test_sent_letter_uses_document_date_and_lists_replies_still_pending(self):
+        sent = self.create('documents', **self.document_data(automatic_number=True, preparation_status='enviado_digital', date='2026-10-16'))
+        self.assertEqual(sent['sent_date'], '2026-10-16')
+        waiting = self.create('documents', **self.document_data(automatic_number=True, preparation_status='enviado_digital', date='2026-10-10',
+                                                              followup_frequency='semanal', due_date='2026-10-20'))
+        answered = self.create('documents', **self.document_data(automatic_number=True, preparation_status='enviado_digital', date='2026-10-11',
+                                                               followup_frequency='diaria', due_date='2026-10-18', attended=True))
+        no_follow = self.create('documents', **self.document_data(automatic_number=True, preparation_status='enviado_digital', date='2026-10-12',
+                                                                followup_frequency='no_es_necesario'))
+        pending = self.client.get('/api/documents', params={'awaiting_reply': 'true'}).json()['items']
+        self.assertEqual([item['id'] for item in pending], [waiting['id']])
+        self.assertNotIn(answered['id'], [item['id'] for item in pending])
+        self.assertNotIn(no_follow['id'], [item['id'] for item in pending])
+
+    def test_document_that_needs_follow_up_creates_one_tramite_in_seguimiento(self):
+        response = self.client.post('/api/documents', json=self.document_data(automatic_number=True, followup_frequency='semanal'))
+        self.assertEqual(response.status_code, 422, response.text)
+        doc = self.create('documents', **self.document_data(automatic_number=True, followup_frequency='semanal', due_date='2026-10-30'))
+        cases = [c for c in self.client.get('/api/cases').json()['items'] if c['document_id'] == doc['id']]
+        self.assertEqual(len(cases), 1)
+        self.assertEqual((cases[0]['status'], cases[0]['due_date'], cases[0]['current_department']), ('derivacion', '2026-10-30', 'Área ficticia'))
+        response = self.client.patch('/api/documents/' + doc['id'], json={'revision': doc['revision'], 'due_date': '2026-11-05'})
+        self.assertEqual(response.status_code, 200, response.text)
+        cases = [c for c in self.client.get('/api/cases').json()['items'] if c['document_id'] == doc['id']]
+        self.assertEqual((len(cases), cases[0]['due_date']), (1, '2026-11-05'))
+        response = self.client.patch('/api/documents/' + doc['id'], json={'revision': response.json()['revision'], 'followup_frequency': 'no_es_necesario'})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(len([c for c in self.client.get('/api/cases').json()['items'] if c['document_id'] == doc['id']]), 1)
+
     def document_data(self, **changes):
         return {'title': 'Documento ficticio', 'year': 2026, 'document_type_id': self.type['id'],
                 'section': 'emitidos', 'date': '2026-10-14', 'sender': 'OGC ficticia',
@@ -393,7 +422,7 @@ class APITest(unittest.TestCase):
             self.assertEqual((sent['document_status'], sent['sent_date']), (state, '2026-10-12'))
             result = self.client.patch('/api/documents/'+doc['id'], json={
                 'revision':sent['revision'], 'receipt_number':'CARGO-123', 'priority':'alta',
-                'followup_frequency':'quincenal', 'comments':'Esperar respuesta del área',
+                'followup_frequency':'quincenal', 'due_date':'2026-10-27', 'comments':'Esperar respuesta del área',
                 'email_url':'https://mail.google.com/mail/u/0/#sent/example', 'attended':True})
             self.assertEqual(result.status_code, 200, result.text)
             self.assertEqual(result.json()['receipt_number'], 'CARGO-123')
@@ -407,8 +436,10 @@ class APITest(unittest.TestCase):
         self.assertNotIn('Atención del documento recibido', export)
 
     def test_document_workflow_rejects_inconsistent_dates_and_type_states(self):
+        # A sent letter without its own sending date uses the document date.
+        sent_same_day = self.create('documents', **self.document_data(automatic_number=True, preparation_status='enviado_digital'))
+        self.assertEqual(sent_same_day['sent_date'], '2026-10-14')
         for changes in [
-            {'preparation_status':'enviado_digital'},
             {'preparation_status':'en_redaccion','sent_date':'2026-10-12'},
             {'preparation_status':'aprobado'},
         ]:
@@ -434,13 +465,13 @@ class APITest(unittest.TestCase):
     def test_document_number_preview_does_not_reserve_and_series_restart_by_year(self):
         params = {'document_type_id': self.type['id'], 'year': 2026}
         for _ in range(2):
-            self.assertEqual(self.client.get('/api/documents/next-number', params=params).json()['number'], 'CARTA N° 001-2026-UNAJMA-OGC')
+            self.assertEqual(self.client.get('/api/documents/next-number', params=params).json()['number'], 'CARTA N° 01-2026-UNAJMA-OGC')
         first = self.create('documents', **self.document_data(automatic_number=True))
         second = self.create('documents', **self.document_data(automatic_number=True))
-        self.assertEqual(first['number'], 'CARTA N° 001-2026-UNAJMA-OGC')
-        self.assertEqual(second['number'], 'CARTA N° 002-2026-UNAJMA-OGC')
+        self.assertEqual(first['number'], 'CARTA N° 01-2026-UNAJMA-OGC')
+        self.assertEqual(second['number'], 'CARTA N° 02-2026-UNAJMA-OGC')
         next_year = self.create('documents', **self.document_data(year=2027, date='2027-01-01'))
-        self.assertEqual(next_year['number'], 'CARTA N° 001-2027-UNAJMA-OGC')
+        self.assertEqual(next_year['number'], 'CARTA N° 01-2027-UNAJMA-OGC')
         for type_name, prefix, suffix in [('Carta múltiple', 'CARTA MÚLTIPLE', 'UNAJMA-OGC'),
                                          ('Informe', 'INFORME', 'UNAJMA-OGC'),
                                          ('Informe técnico', 'INFORME TÉCNICO', 'UNAJMA/OGC'),
@@ -448,19 +479,22 @@ class APITest(unittest.TestCase):
                                          ('Acta de reunión', 'ACTA DE REUNIÓN', 'UNAJMA-OGC-SGCI')]:
             typ = self.create('document-types', name=type_name)
             record = self.create('documents', **self.document_data(document_type_id=typ['id']))
-            self.assertEqual(record['number'], f'{prefix} N° 001-2026-{suffix}')
+            self.assertEqual(record['number'], f'{prefix} N° 01-2026-{suffix}')
 
-    def test_document_sequence_continues_reference_and_existing_alias_numbers(self):
-        with self.factory() as db:
-            db.add(m.DocumentSequence(series='carta', year=2026, last_number=500))
-            db.commit()
+    def test_document_numbers_follow_the_register_and_reuse_removed_numbers(self):
         self.create('documents', **self.document_data(section='recibidos', number='CARTA N° 900-2026-OTRA-ENTIDAD'))
-        self.assertEqual(self.create('documents', **self.document_data())['number'], 'CARTA N° 501-2026-UNAJMA-OGC')
-        self.create('documents', **self.document_data(number='CARTA N° 520-2026-UNAJMA-OGC'))
+        first = self.create('documents', **self.document_data(automatic_number=True))
+        self.assertEqual(first['number'], 'CARTA N° 01-2026-UNAJMA-OGC')
+        self.create('documents', **self.document_data(number='CARTA N° 05-2026-UNAJMA-OGC'))
         alias = self.create('document-types', name='Carta simple')
         automatic = self.create('documents', **self.document_data(document_type_id=alias['id'], automatic_number=True, number='IGNORAR ESTA SUGERENCIA'))
-        self.assertEqual(automatic['number'], 'CARTA N° 521-2026-UNAJMA-OGC')
-        self.assertEqual(self.create('documents', **self.document_data())['number'], 'CARTA N° 522-2026-UNAJMA-OGC')
+        self.assertEqual(automatic['number'], 'CARTA N° 06-2026-UNAJMA-OGC')
+        removed = self.create('documents', **self.document_data(automatic_number=True))
+        self.assertEqual(removed['number'], 'CARTA N° 07-2026-UNAJMA-OGC')
+        with self.factory() as db:
+            db.delete(db.get(m.Document, removed['id']))
+            db.commit()
+        self.assertEqual(self.create('documents', **self.document_data(automatic_number=True))['number'], 'CARTA N° 07-2026-UNAJMA-OGC')
 
     def test_document_link_is_saved_atomically_and_edit_preserves_version_history(self):
         url = 'https://docs.google.com/document/d/ficticio-v1/edit'
@@ -485,7 +519,7 @@ class APITest(unittest.TestCase):
             self.assertEqual(response.status_code, 422, response.text)
         response = self.client.post('/api/documents', json=self.document_data(responsible_id='no-existe'))
         self.assertEqual(response.status_code, 409, response.text)
-        self.assertEqual(self.create('documents', **self.document_data())['number'], 'CARTA N° 001-2026-UNAJMA-OGC')
+        self.assertEqual(self.create('documents', **self.document_data())['number'], 'CARTA N° 01-2026-UNAJMA-OGC')
         metadata = self.client.get('/api/meta').json()['documents']['fields']
         self.assertTrue(any(field['key'] == 'url' for field in metadata))
 

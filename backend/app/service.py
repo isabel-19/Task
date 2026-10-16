@@ -311,6 +311,12 @@ def filtered(db, name, params, user=None):
             raise HTTPException(422, 'Fecha final no válida.')
     if lower and upper and lower > upper:
         raise HTTPException(422, 'La fecha inicial no puede ser posterior a la fecha final.')
+    if params.get('awaiting_reply') == 'true' and name == 'documents':
+        # Sent letters that asked for follow-up and whose reply is not registered yet, soonest deadline first.
+        stmt = stmt.where(model.section == 'emitidos', model.attended.is_(False),
+                          model.preparation_status.in_(['enviado_digital', 'enviado_fisico', 'enviado_fisico_y_digital']),
+                          model.followup_frequency.is_not(None), model.followup_frequency != 'no_es_necesario')
+        stmt = stmt.order_by(model.due_date.is_(None), model.due_date)
     if params.get('overdue') == 'true' and hasattr(model, 'due_date'):
         stmt = stmt.where(model.due_date < date.today())
         if hasattr(model, 'status'):

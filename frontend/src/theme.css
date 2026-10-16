@@ -193,12 +193,19 @@ h1 { letter-spacing: -1.1px; }
 .document-number-label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 1px; margin-bottom: 7px; }
 .document-number-panel strong { display: block; font-size: 16px; line-height: 1.5; overflow-wrap: anywhere; }
 .document-number-panel p { font-size: 12px; line-height: 1.6; color: #556274; margin-top: 7px; }
-.document-link-panel { padding: 20px; border: 1px solid #d8dde5; border-radius: 12px; background: #f4f6fa; margin: 16px 0; }
-.document-link-heading { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 18px; color: #384a64; }
-.document-link-heading h3 { font-size: 16px; font-weight: 600; }
-.document-link-heading p, .document-link-note { font-size: 12px; line-height: 1.7; color: #576477; }
-.document-link-heading p { margin-top: 4px; }
-.document-link-note { margin-top: 10px; }
+/* Compact fields: small inputs share a row instead of each taking half the form. */
+.form-grid { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px 14px; }
+@media (max-width: 760px) { .form-grid { grid-template-columns: 1fr; } }
+.document-link-panel { display: grid; gap: 12px; padding: 16px 18px; border: 1px solid #d8dde5; border-radius: 12px; background: #f7f9fc; margin: 12px 0 4px; }
+.document-link-heading { display: flex; gap: 12px; align-items: center; color: #384a64; }
+.document-link-icon { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: 10px; background: #e4ecfb; color: #1d4ed8; }
+.document-link-heading h3 { font-size: 15px; font-weight: 600; margin: 0; }
+.document-link-heading p, .document-link-note { font-size: 12px; line-height: 1.6; color: #576477; }
+.document-link-heading p { margin: 2px 0 0; }
+.document-link-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.document-link-input { flex: 1 1 320px; min-width: 0; }
+.document-link-open { min-height: 40px; border-radius: 8px; flex: none; }
+.document-link-note { margin: 0; }
 .document-table-link { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; white-space: nowrap; min-height: 36px; }
 .document-table-link:hover { text-decoration: underline; }
 .login-story { background: var(--forest); }
@@ -395,3 +402,6 @@ button:focus-visible, a:focus-visible, [role='button']:focus-visible { outline: 
   .task-detail-tabs .q-tab__label { font-size: 12px; }
   .task-detail .detail-actions { flex-wrap: wrap; }
 }
+/* Optional document details stay folded so a letter needs only its essential fields. */
+.record-more { margin-top: 6px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.record-more-header { font-size: 14px; font-weight: 600; color: #384a64; background: #f7f9fc; }

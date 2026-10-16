@@ -33,6 +33,10 @@ def validate_workflow(db, data, existing=None):
     section = data.get('section', existing.section if existing else None)
     if section != 'emitidos':
         return
+    follow_up = data.get('followup_frequency', existing.followup_frequency if existing else None)
+    deadline = data.get('due_date', existing.due_date if existing else None)
+    if follow_up not in (None, 'no_es_necesario') and not deadline:
+        raise HTTPException(422, 'Indica la fecha límite de respuesta para el seguimiento.')
     state = data.get('preparation_status', existing.preparation_status if existing else 'por_inicio')
     typ = db.get(m.DocumentType, data.get('document_type_id', existing.document_type_id if existing else None))
     options = status_options(typ.name) if typ else DOCUMENT_STATES

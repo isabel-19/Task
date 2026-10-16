@@ -280,7 +280,7 @@
           class="filter-search"
           ><template #prepend><q-icon name="search" /></template
         ></q-input>
-        <SearchSelect use-input fill-input
+        <SearchSelect use-input
           v-model="filters.status"
           outlined
           dense
@@ -296,7 +296,7 @@
           "
           class="filter-select"
         />
-        <SearchSelect use-input fill-input
+        <SearchSelect use-input
           v-if="scope === 'team' || scope === 'assigned'"
           v-model="filters.responsible_id"
           outlined
