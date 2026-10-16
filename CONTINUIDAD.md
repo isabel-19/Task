@@ -1,7 +1,7 @@
 # Informe de continuidad — ROADMAP OGC · UNAJMA
 
 Última actualización: **16 de octubre de 2026, hora de Perú**.
-Último trabajo en curso: respaldo cifrado y restauración local verificados; migración 011 aplicada y comprobada en Supabase. Se retiraron BOOTSTRAP_* del servicio Render con Save only. Falta confirmar commit/push, despliegue y prueba remota de avisos. El SQL de hardening queda excluido del envío por indicación del propietario. Informe: [publicacion-reuniones-2026-10-16.md](docs/publicacion-reuniones-2026-10-16.md).
+Último trabajo completado: respaldo cifrado y restauración local verificados; migración 011 aplicada en Supabase, commit funcional `741fdfb` subido a GitHub y desplegado en Render. Avisos de reuniones probados con dos cuentas en navegadores aislados y por HTTP. BOOTSTRAP_* retirados y acceso de jefatura comprobado después del despliegue. El SQL de hardening quedó excluido del commit y conserva su cambio local. Informe: [publicacion-reuniones-2026-10-16.md](docs/publicacion-reuniones-2026-10-16.md).
 
 ## Dónde nos quedamos
 
@@ -18,7 +18,7 @@
 | Base | Esquema `roadmap`, migración `011` aplicada el 16 de octubre; ejecución con rol restringido `roadmap_api` |
 | Configuración seleccionada | `render.yaml` de la raíz. `deploy/render.production.yaml` es una alternativa de pago que no se aplicó |
 
-**Siguiente paso concreto:** subir los cambios revisados a GitHub excluyendo `database/supabase-hardening.sql`, esperar Render y validar avisos con dos cuentas ficticias. El respaldo previo y 011 ya están verificados. BOOTSTRAP_* se retiraron con Save only; el próximo despliegue usará esa configuración.
+**Siguiente paso concreto:** conservar una copia privada externa del respaldo y sus claves; después continuar con la vinculación personal de Google si el propietario lo solicita. La publicación de reuniones, la migración 011, la retirada de BOOTSTRAP_* y las pruebas con dos cuentas están terminadas. Frontend y API siguen juntos; no se creó un sitio estático separado.
 
 El propietario puede cerrar sesión. Para retomar, abrir esta misma carpeta y leer este archivo; `AGENTS.md` lo establece como primer paso. La disponibilidad futura del navegador conectado debe comprobarse de nuevo.
 
@@ -75,19 +75,19 @@ La cuenta creada para la última prueba quedó desactivada y su tarea cerrada. E
 
 ## Pendientes, en orden sugerido
 
-1. Completar y verificar el despliegue de 011 y los avisos de reuniones con dos cuentas. BOOTSTRAP_* ya se retiraron de la configuración de Render; falta comprobar el ingreso tras el despliegue.
+1. Conservar fuera del equipo una copia privada del respaldo y el material necesario para descifrarlo. Publicación de 011, avisos y acceso posterior al retiro de BOOTSTRAP_* comprobados; no repetirlos como trabajo pendiente.
 2. Vincular la cuenta personal de Google desde Cuentas vinculadas en la web y probar selección, previsualización y entrega de un archivo autorizado. La configuración central está presente, pero jefatura aparecía **sin vincular**. No afirmar que Drive ya fue validado en producción.
 3. Habilitar Microsoft si el propietario lo necesita: la aplicación externa y sus credenciales todavía no están configuradas.
 4. Conservar una copia privada externa del respaldo y sus claves. El 16 de octubre se verificó la restauración local aislada del esquema roadmap completo, los conteos y la integridad de evidencias/claves del respaldo previo a 011.
 5. Registrar los integrantes autorizados en la publicación. Revisar identidades y procedencia antes de importar información institucional.
 6. Revisar los Excel realmente enlazados en Registro Digital; el mapeo previo no confirma por sí solo todos los enlaces del libro original.
-7. Cuando se solicite guardar en GitHub, revisar el diff pendiente y subir los cambios pertinentes. No se creó un commit ni se hizo push durante la validación o la creación de este informe.
+7. Conservar el cambio local de `database/supabase-hardening.sql`, excluido del envío por indicación del propietario. El código de reuniones y la documentación previa ya se incorporaron a GitHub; comprobar git status al retomar. La separación de un frontend estático quedó como opción sin confirmar.
 
-No se probaron escrituras reales de todos los módulos en el alojamiento ni la recuperación tras un reinicio provocado; las suites locales cubren sus reglas y las consultas remotas revisadas funcionaron. El estado aquí descrito es el de la última comprobación, no una garantía permanente del proveedor gratuito.
+No se probaron escrituras reales de todos los módulos. Sí se comprobaron la publicación de reuniones con dos cuentas y la recuperación de una tarea y evidencia anteriores después del nuevo despliegue. El estado aquí descrito es el de la última comprobación, no una garantía permanente del proveedor gratuito.
 
 ## Estado local y de Git
 
-Último commit local observado antes de este informe: `81d1c27` — Restaurar dependencias completas para compilación en Linux. Es una referencia histórica; consultar `git status` y `git log` al retomar.
+Último commit funcional publicado: `741fdfb` — Publicar avisos privados de reuniones con migración 011 y continuidad. Render lo desplegó con ID `dep-db94fb6k1f9s73eqrfjg`. Las notas de cierre se guardan por separado con `[skip render]`; consultar `git status` y `git log` al retomar para su commit concreto.
 
 Cambios locales presentes antes de preparar este informe:
 
@@ -95,7 +95,7 @@ Cambios locales presentes antes de preparar este informe:
 - `docs/verificacion-render-2026-10-15.md`: informe de validación nuevo, aún sin commit.
 - `database/supabase-hardening.sql`: cambio previo que concede UPDATE únicamente sobre `evidence_versions.revision` para permitir el bloqueo de la fila al revisar. El permiso ya estaba aplicado en Supabase y se verificó; conservarlo en el SQL reproducible pendiente de subir.
 
-Esta modificación añade `AGENTS.md` y `CONTINUIDAD.md`, y enlaza el informe desde `README.md` y `TASK.md`. Todo lo anterior permanece **guardado localmente**, sin commit/push nuevo y sin desplegar cambios en este paso.
+Los cambios de código y documentación anteriores, incluidos AGENTS.md y este informe, se incorporaron al commit funcional publicado. El cambio local del SQL de hardening quedó fuera. Las notas de cierre se actualizan en un commit documental separado sin provocar otro despliegue.
 
 Credenciales y material privado: están fuera de Git, en la configuración local y el archivo cifrado `.local/render-free-secrets.enc`. No copiar sus valores a este informe. Las capturas/resultados de validación están en `.local/qa/render-2026-10-15/`; los scripts privados están en `.local/`.
 
@@ -118,5 +118,7 @@ Las filas resumen el historial disponible, sin atribuir a esta sesión acciones 
 | 2026-10-16, preparación de respaldo y publicación | Revisión de 011 y del diff existente; herramientas oficiales PostgreSQL descargadas de EDB en `.local/tools/pg17`; script privado `.local/release-011.py` para copia cifrada, restauración aislada y migración condicionada al respaldo verificado | 109 pruebas backend y 76 frontend correctas; build correcto. Copia remota iniciada; no se migró ni publicó todavía. Render autenticado | Verificar copia y restauración; aplicar 011; publicar excluyendo supabase-hardening.sql; validar avisos con cuentas ficticias. Mantener servicios juntos mientras no se confirme una separación estática |
 | 2026-10-16, respaldo previo a 011 | Copia consistente con pg_dump, cifrada en `.local/backups/prod-pre-011-20261016T153301Z`, más los 3 archivos de evidencia y las claves de recuperación cifradas | Restaurada en PostgreSQL local aislado: 48 tablas y 257 filas coinciden; FK restauradas y hashes de archivos correctos. Servidor temporal detenido. No se restauró sobre producción. Se corrigió un problema local de inicio de procesos en Windows | Aplicar 011 solo tras esta verificación, después publicar excluyendo el SQL de hardening. El backup es local; conservar además una copia privada externa y la clave local de recuperación |
 | 2026-10-16, migración y limpieza de variables | Alembic 011 aplicado en Supabase y BOOTSTRAP_* retirados en Render con Save only | Tabla y permisos verificados; usuarios/tareas/reuniones/asistentes/evidencias conservados. 109 pruebas backend y 76 frontend y build correctos antes del envío | Commit/push y despliegue todavía pendientes; excluir hardening y validar con dos cuentas. Ver docs/publicacion-reuniones-2026-10-16.md |
+| 2026-10-16, commit y push autorizados | Commit 741fdfb subido a origin/main después del respaldo verificado y 011 | Diff preparado revisado; hardening no incluido y su cambio local conservado. Ausencia de BOOTSTRAP_* comprobada tras recargar Render | Esperar despliegue y probar avisos remotos; esta actualización de continuidad queda local hasta el siguiente commit |
+| 2026-10-16, despliegue y prueba final | Render desplegó 741fdfb en dep-db94fb6k1f9s73eqrfjg. Dos contextos de navegador para jefatura/integrante, lectura del aviso y apertura de reunión; cambios/cancelación verificados por HTTP | Invitación privada, lectura ajena rechazada, aviso leído al abrir, cambios y cancelación correctos. Reunión ficticia cancelada, cuenta técnica desactivada y sesión rechazada; salud y evidencia anterior correctas después del despliegue | Mantener frontend/API juntos; copia privada externa del respaldo pendiente. Guardar notas de cierre con skip render; conservar hardening local excluido |
 
 Para cada nueva modificación, añadir una fila con fecha, cambio, archivos/servicios afectados, comprobación real y próximo paso; actualizar también el estado actual y los pendientes de este documento.

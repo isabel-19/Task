@@ -25,4 +25,12 @@ La copia es local. Para recuperación ante pérdida del equipo, conservar una co
 
 Antes del envío: 109 pruebas backend, 76 frontend y compilación de producción correctas. Las pruebas de reuniones incluyen invitación, cambio/cancelación, asistentes añadidos después, deduplicación, rechazo de inactivos y lectura exclusiva por el destinatario.
 
-Al escribir esta entrada todavía está pendiente confirmar el commit/push, el despliegue de Render y el flujo remoto con dos cuentas. Consultar `CONTINUIDAD.md` para el resultado final; no interpretar este estado intermedio como despliegue confirmado.
+El commit funcional **741fdfb** se subió a `origin/main` y Render confirmó el despliegue **dep-db94fb6k1f9s73eqrfjg** como Deployed. La configuración guardada ya no contiene BOOTSTRAP_*; el ingreso de jefatura siguió funcionando después del despliegue.
+
+La prueba remota utilizó dos contextos de navegador separados, jefatura y un integrante ficticio. Se verificó el aviso privado de invitación, el rechazo de lectura por otra persona, la apertura de la reunión desde la campana y su desaparición de la cola al marcarse leído. Las pruebas HTTP posteriores confirmaron los avisos de cambio de lugar y cancelación. La reunión ficticia quedó cancelada, sus avisos de prueba leídos y la cuenta técnica desactivada; se comprobó que su sesión recibe 401 después de desactivarla.
+
+Salud final: producción, PostgreSQL y demo desactivada. Tras el despliegue se recuperaron de nuevo la tarea ficticia cerrada y el archivo anterior, con hash correcto. El archivo de hardening no forma parte del commit funcional y conserva su cambio local.
+
+Los datos de prueba están identificados como ficticios; no se enviaron invitaciones a personas ajenas al ensayo. Los resultados privados, sin credenciales, están en `.local/release-011-qa-result.json` y `.local/release-011-status.json`.
+
+Las notas finales se guardan en un commit solo documental con `[skip render]`, mecanismo [documentado por Render](https://render.com/docs/deploys#skipping-an-auto-deploy), para no repetir el despliegue ya validado. La funcionalidad publicada corresponde a 741fdfb.

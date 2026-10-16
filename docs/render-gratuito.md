@@ -6,7 +6,9 @@ Estado al retomar el 15 de octubre de 2026: aplicación publicada en https://roa
 
 Revalidación posterior: el propietario confirmó el ingreso. Se revisaron PostgreSQL real (47 tablas del modelo, 128 relaciones sin huérfanos, TLS y rol restringido), 50 consultas API, 12 pantallas y el flujo real de asignación, archivo, aviso, revisión y cierre. Pasaron 104 pruebas locales de backend y 75 de interfaz. Véase el [informe y sus límites](verificacion-render-2026-10-15.md).
 
-Siguiente paso: retirar las variables temporales `BOOTSTRAP_*`, cuya presencia se confirmó en el panel de Render sin modificarlo. La cuenta ya creada se conserva al retirar esas variables. Google está configurado, pero la cuenta de jefatura todavía aparece sin vincular en la web; falta probar Drive con autorización personal. Microsoft no está habilitado. El registro de integrantes y la prueba de restauración de backups siguen pendientes.
+Actualización del 16 de octubre: respaldo cifrado del esquema completo y evidencias restaurado y verificado localmente antes de migrar. Supabase está en 011 y Render publicó el commit 741fdfb con avisos de reuniones probados con dos cuentas. BOOTSTRAP_* retirados; salud, ingreso y evidencia anterior correctos tras el despliegue. Frontend/API siguen juntos. Véase [publicación de reuniones](publicacion-reuniones-2026-10-16.md).
+
+Siguiente paso: conservar una copia privada externa del respaldo y sus claves. Google está configurado, pero falta probar Drive con autorización personal en la web. Microsoft no está habilitado; el registro de integrantes reales sigue pendiente.
 
 ## Recursos y límites
 
