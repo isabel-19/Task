@@ -1,4 +1,5 @@
 <script setup>
+  import SearchSelect from './SearchSelect.vue';
   import { computed, reactive, ref, watch } from 'vue';
   import { api, query, session } from '../api';
   import { human } from '../format';
@@ -251,7 +252,7 @@
               ><q-checkbox
                 v-else-if="field.type === 'boolean'"
                 v-model="form[field.key]"
-                :label="field.label" /><q-select
+                :label="field.label" /><SearchSelect use-input fill-input
                 v-else-if="field.lookup"
                 v-model="form[field.key]"
                 outlined
@@ -266,7 +267,7 @@
                       : field.lookup
                   ] || []
                 "
-                :rules="rules(field)" /><q-select
+                :rules="rules(field)" /><SearchSelect use-input fill-input
                 v-else-if="field.options?.length"
                 v-model="form[field.key]"
                 outlined
@@ -307,7 +308,7 @@
             <p class="document-link-note">{{ record ? 'Si cambias el enlace, se guarda una nueva versión y se conserva la anterior.' : 'El enlace se guardará como la primera versión del documento. También puedes completar el registro sin enlace y agregarlo después.' }}</p>
           </section>
           <div v-if="resource === 'tasks' && !record" class="q-gutter-y-md q-mt-md">
-            <q-select
+            <SearchSelect use-input hide-selected
               v-model="form.member_ids"
               outlined
               multiple
@@ -330,7 +331,7 @@
             </p>
           </div>
           <div v-if="resource === 'meetings' && !record" class="q-gutter-y-md q-mt-md">
-            <q-select
+            <SearchSelect use-input hide-selected
               v-model="form.attendee_ids"
               outlined
               multiple

@@ -1,4 +1,5 @@
 <script setup>
+  import SearchSelect from '../components/SearchSelect.vue';
   import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
   import { useRoute } from 'vue-router';
   import { useQuasar } from 'quasar';
@@ -279,7 +280,7 @@
           class="filter-search"
           ><template #prepend><q-icon name="search" /></template
         ></q-input>
-        <q-select
+        <SearchSelect use-input fill-input
           v-model="filters.status"
           outlined
           dense
@@ -295,7 +296,7 @@
           "
           class="filter-select"
         />
-        <q-select
+        <SearchSelect use-input fill-input
           v-if="scope === 'team' || scope === 'assigned'"
           v-model="filters.responsible_id"
           outlined

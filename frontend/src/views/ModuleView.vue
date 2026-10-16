@@ -1,4 +1,5 @@
 <script setup>
+  import SearchSelect from '../components/SearchSelect.vue';
   import { ref, computed, watch, onMounted } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useQuasar } from 'quasar';
@@ -421,7 +422,7 @@
           :available="availableFilters"
         />
         <div class="filter-bar q-mt-sm">
-          <q-select
+          <SearchSelect use-input fill-input
             v-if="states.length"
             v-model="filters.status"
             outlined
@@ -432,7 +433,7 @@
             emit-value
             map-options
             class="filter-select"
-          /><q-select
+          /><SearchSelect use-input fill-input
             v-if="selected === 'documents'"
             v-model="filters.document_type_id"
             outlined
@@ -443,7 +444,7 @@
             label="Tipo documental"
             :options="lookups['document-types'] || []"
             class="filter-select"
-          /><q-select
+          /><SearchSelect use-input fill-input
             v-if="selected === 'documents' && (!filters.section || filters.section === 'emitidos')"
             v-model="filters.preparation_status"
             outlined dense clearable emit-value map-options

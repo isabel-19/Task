@@ -1,4 +1,5 @@
 <script setup>
+  import SearchSelect from './SearchSelect.vue';
   import { ref, watch, computed } from 'vue';
   import { api, query } from '../api';
   import { dateLabel } from '../modules';
@@ -212,7 +213,7 @@
           Abre la evidencia y revisa el aporte antes de confirmar. Una observación permite enviar un
           nuevo avance con la corrección.
         </p>
-        <q-select
+        <SearchSelect use-input fill-input
           v-model="result"
           outlined
           label="Resultado de la revisión"

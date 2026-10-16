@@ -1,4 +1,5 @@
 <script setup>
+  import SearchSelect from './SearchSelect.vue';
   import { ref, reactive, watch, computed } from 'vue';
   import { api, session } from '../api';
   import { human } from '../format';
@@ -279,7 +280,7 @@
               ><q-checkbox
                 v-if="field.type === 'boolean'"
                 v-model="form[field.key]"
-                :label="field.label" /><q-select
+                :label="field.label" /><SearchSelect use-input
                 v-else-if="field.lookup"
                 v-model="form[field.key]"
                 outlined
@@ -290,7 +291,7 @@
                 :rules="rules(field)"
                 :options="lookups[field.lookup] || []"
                 :multiple="field.multiple || false"
-                :use-chips="field.multiple || false" /><q-select
+                :use-chips="field.multiple || false" /><SearchSelect use-input fill-input
                 v-else-if="field.options"
                 v-model="form[field.key]"
                 outlined

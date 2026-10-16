@@ -1,4 +1,5 @@
 <script setup>
+  import SearchSelect from './SearchSelect.vue';
   import { ref, reactive, computed } from 'vue';
   import { api } from '../api';
   import { fieldLabel, formatApiError, human } from '../format';
@@ -125,7 +126,7 @@
       referencias y duplicados antes de guardar. No se modifican los archivos originales.
     </p>
     <div class="form-grid">
-      <q-select
+      <SearchSelect use-input fill-input
         v-model="entity"
         outlined
         emit-value
@@ -145,7 +146,7 @@
           source = null;
           preview = null;
         "
-      /><q-select
+      /><SearchSelect use-input fill-input
         v-if="source?.sheets.length > 1"
         v-model="sheet"
         outlined
@@ -170,14 +171,14 @@
       </p>
       <div v-for="field in fields" :key="field.key" class="import-map-row">
         <b>{{ field.label }}{{ field.required ? ' *' : '' }}</b
-        ><q-select
+        ><SearchSelect use-input fill-input
           v-model="mapping[field.key]"
           dense
           outlined
           clearable
           :options="source.headers"
           label="Columna de origen"
-        /><q-select
+        /><SearchSelect use-input fill-input
           v-if="field.lookup"
           v-model="constants[field.key]"
           dense
@@ -187,7 +188,7 @@
           map-options
           :options="lookups[field.lookup] || []"
           label="Registro constante"
-        /><q-select
+        /><SearchSelect use-input fill-input
           v-else-if="field.options?.length"
           v-model="constants[field.key]"
           dense
