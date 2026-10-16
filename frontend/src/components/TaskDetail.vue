@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import { dateLabel } from '../modules';
   import StatusBadge from './StatusBadge.vue';
   import TaskProgress from './TaskProgress.vue';
@@ -27,6 +27,36 @@
   function submitted(value) {
     tab.value = 'evidence';
     emit('saved', value);
+  }
+  // Etapas reales del flujo: asignación → avance → revisión por jefatura → cierre.
+  const steps = [
+    { key: 'pendiente', label: 'Asignada' },
+    { key: 'en_progreso', label: 'En progreso' },
+    { key: 'en_revision', label: 'En revisión' },
+    { key: 'cerrada', label: 'Cerrada' },
+  ];
+  const currentStep = computed(() => Math.max(0, steps.findIndex((step) => step.key === props.record.status)));
+  const nextStep = computed(() => {
+    const status = props.record.status;
+    if (status === 'cerrada')
+      return { text: 'La tarea está cerrada. Consulta las evidencias registradas.', action: null };
+    if (status === 'en_revision')
+      return props.record.can_review
+        ? {
+            text: 'Revisa el avance de cada persona en Evidencias, valida o devuelve con nota y, cuando todos estén validados, cierra la tarea.',
+            action: 'Revisar avances',
+          }
+        : { text: 'Esperando la validación de jefatura. No necesitas hacer nada más por ahora.', action: null };
+    if (status === 'en_progreso')
+      return props.record.can_advance
+        ? { text: 'Registra tu avance con evidencia. Cuando todas las personas reporten 100 %, la tarea pasa a revisión.', action: 'Registrar mi avance' }
+        : { text: 'Las personas asignadas registran su avance. Al llegar todas al 100 %, la tarea pasa a revisión.', action: null };
+    return props.record.can_advance
+      ? { text: 'Empieza registrando tu avance con evidencia.', action: 'Registrar mi avance' }
+      : { text: 'Esperando que las personas asignadas registren su avance.', action: null };
+  });
+  function runNextStep() {
+    tab.value = nextStep.value.action === 'Registrar mi avance' ? 'submit' : 'evidence';
   }
 </script>
 <template>
@@ -67,6 +97,36 @@
         />
       </q-tabs>
       <q-card-section>
+        <section v-if="tab === 'summary'" class="task-flow" aria-label="Etapa de la tarea">
+          <ol class="task-flow-steps">
+            <li
+              v-for="(step, index) in steps"
+              :key="step.key"
+              :class="{ done: index < currentStep, current: index === currentStep }"
+              :aria-current="index === currentStep ? 'step' : undefined"
+            >
+              <span class="task-flow-dot">
+                <q-icon v-if="index < currentStep" name="check" size="14px" />
+                <template v-else>{{ index + 1 }}</template>
+              </span>
+              {{ step.label }}
+            </li>
+          </ol>
+          <div class="task-flow-next">
+            <p>
+              <b>Siguiente paso:</b>
+              {{ nextStep.text }}
+            </p>
+            <q-btn
+              v-if="nextStep.action"
+              color="primary"
+              unelevated
+              no-caps
+              :label="nextStep.action"
+              @click="runNextStep"
+            />
+          </div>
+        </section>
         <div v-if="tab === 'summary'" class="detail-grid task-summary">
           <div>
             <span class="detail-label">Personas asignadas</span>
@@ -152,5 +212,67 @@
   }
   .task-summary {
     margin-top: 0;
+  }
+  .task-flow {
+    margin-bottom: 20px;
+  }
+  .task-flow-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    list-style: none;
+    margin: 0 0 14px;
+    padding: 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .task-flow-steps li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .task-flow-steps li.current {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .task-flow-steps li.done {
+    color: #15803d;
+  }
+  .task-flow-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .task-flow-steps li.current .task-flow-dot {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: #fff;
+  }
+  .task-flow-steps li.done .task-flow-dot {
+    background: #dcfce7;
+    border-color: #86d4a4;
+  }
+  .task-flow-next {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: #eaf1ff;
+    color: #1e40af;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .task-flow-next p {
+    margin: 0;
+    flex: 1 1 320px;
   }
 </style>
