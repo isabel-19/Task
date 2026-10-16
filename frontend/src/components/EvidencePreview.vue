@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, watch, onUnmounted } from 'vue';
+  import { computed, ref, watch, onUnmounted } from 'vue';
   import { api, fileUrl } from '../api';
   const props = defineProps({ modelValue: Boolean, file: Object });
   const emit = defineEmits(['update:modelValue']);
@@ -7,7 +7,14 @@
     error = ref(''),
     source = ref(''),
     contentType = ref(''),
-    preview = ref(null);
+    preview = ref(null),
+    activeSheet = ref('');
+  // Several Excel sheets are shown as tabs; a single sheet keeps the plain layout.
+  const visibleSheets = computed(() => {
+    const sheets = preview.value?.sheets || [];
+    if (sheets.length <= 1) return sheets;
+    return [sheets.find((sheet) => sheet.name === activeSheet.value) || sheets[0]];
+  });
   let sequence = 0,
     controller;
   function release() {
@@ -118,19 +125,66 @@
                 : ''
             }}
           </p>
-          <pre v-if="preview.kind === 'text'" class="evidence-text-preview">{{
+          <div
+            v-if="preview.kind === 'text' && preview.blocks?.length"
+            class="evidence-text-preview evidence-doc-blocks"
+          >
+            <template v-for="(block, index) in preview.blocks" :key="index">
+              <component
+                :is="`h${block.level + 1}`"
+                v-if="block.kind === 'heading'"
+                :class="`evidence-doc-h${block.level}`"
+                >{{ block.text }}</component
+              >
+              <p v-else-if="block.kind === 'paragraph'">{{ block.text }}</p>
+              <div v-else-if="block.kind === 'table'" class="evidence-table-scroll">
+                <table>
+                  <tbody>
+                    <tr
+                      v-for="(row, rowIndex) in block.rows"
+                      :key="rowIndex"
+                      :class="{ 'evidence-table-head': rowIndex === 0 && block.rows.length > 1 }"
+                    >
+                      <td v-for="(cell, colIndex) in row" :key="colIndex">{{ cell }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </template>
+          </div>
+          <pre v-else-if="preview.kind === 'text'" class="evidence-text-preview">{{
             preview.text || 'El documento no contiene texto visible.'
           }}</pre>
+          <q-tabs
+            v-if="(preview.sheets || []).length > 1"
+            v-model="activeSheet"
+            dense
+            no-caps
+            align="left"
+            class="evidence-sheet-tabs"
+            aria-label="Hojas del libro"
+          >
+            <q-tab
+              v-for="(sheet, index) in preview.sheets"
+              :key="index"
+              :name="sheet.name"
+              :label="sheet.name"
+            />
+          </q-tabs>
           <section
-            v-for="(sheet, index) in preview.sheets || []"
+            v-for="(sheet, index) in visibleSheets"
             :key="index"
             class="evidence-sheet-preview"
           >
-            <h3>{{ sheet.name }}</h3>
+            <h3 v-if="(preview.sheets || []).length === 1">{{ sheet.name }}</h3>
             <div class="evidence-table-scroll">
               <table>
                 <tbody>
-                  <tr v-for="(row, rowIndex) in sheet.rows" :key="rowIndex">
+                  <tr
+                    v-for="(row, rowIndex) in sheet.rows"
+                    :key="rowIndex"
+                    :class="{ 'evidence-table-head': rowIndex === 0 && sheet.rows.length > 1 }"
+                  >
                     <td v-for="(cell, colIndex) in row" :key="colIndex">{{ cell }}</td>
                   </tr>
                 </tbody>

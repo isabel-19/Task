@@ -177,6 +177,58 @@ it('presenta hojas y celdas de Excel y avisa cuando la vista está limitada', as
   expect(document.body.textContent).toContain('Elena');
   expect(document.body.textContent).toContain('archivo original se conserva completo');
 });
+it('muestra títulos, párrafos y tablas de Word y pestañas por hoja de Excel', async () => {
+  api.mockResolvedValueOnce({
+    kind: 'text',
+    text: 'Plan 2026 Resumen Meta',
+    blocks: [
+      { kind: 'heading', level: 1, text: 'Plan 2026' },
+      { kind: 'paragraph', text: 'Resumen' },
+      {
+        kind: 'table',
+        rows: [
+          ['Meta', 'Logro'],
+          ['60', '58'],
+        ],
+        truncated: false,
+      },
+    ],
+    truncated: false,
+  });
+  await openPreview({
+    id: 'word',
+    name: 'plan.docx',
+    url: '/api/evidence-files/word',
+    content_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  });
+  await vi.waitFor(() =>
+    expect(document.querySelector('.evidence-doc-h1')?.textContent).toBe('Plan 2026'),
+  );
+  expect(document.querySelector('.evidence-doc-blocks td')?.textContent).toBe('Meta');
+  expect(document.querySelector('.evidence-table-head')).not.toBeNull();
+});
+it('ofrece una pestaña por hoja de Excel con su nombre real', async () => {
+  api.mockResolvedValueOnce({
+    kind: 'table',
+    sheets: [
+      { name: 'Seguimiento', rows: [['Persona', 'Avance']] },
+      { name: 'Metas', rows: [['Meta']] },
+    ],
+    truncated: false,
+  });
+  await openPreview({
+    id: 'book',
+    name: 'libro.xlsx',
+    url: '/api/evidence-files/book',
+    content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  await vi.waitFor(() =>
+    expect(document.querySelector('.evidence-sheet-tabs')).not.toBeNull(),
+  );
+  expect(document.querySelectorAll('.evidence-table-scroll td')).toHaveLength(2);
+  expect(document.body.textContent).toContain('Persona');
+  expect(document.body.textContent).toContain('Metas');
+});
 it('permite reintentar la vista previa y descargar el original si falla', async () => {
   api
     .mockRejectedValueOnce(new Error('Archivo no disponible'))

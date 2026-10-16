@@ -126,6 +126,31 @@ class EvidenceFilesTest(unittest.TestCase):
                     self.assertEqual(actual, expected)
                 self.assertIn('attachment', self.client.get(file['url']+'?download=true').headers['content-disposition'])
 
+    def test_office_previews_keep_headings_tables_and_real_sheet_names(self):
+        from app.evidence_storage import document_preview_bytes
+        word = '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>' \
+            '<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>Plan 2026</w:t></w:r></w:p>' \
+            '<w:p><w:r><w:t>Resumen del avance</w:t></w:r></w:p>' \
+            '<w:tbl><w:tr><w:tc><w:p><w:r><w:t>Meta</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Logro</w:t></w:r></w:p></w:tc></w:tr>' \
+            '<w:tr><w:tc><w:p><w:r><w:t>60</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>58</w:t></w:r></w:p></w:tc></w:tr></w:tbl>' \
+            '</w:body></w:document>'
+        preview = document_preview_bytes(office_file('docx', word), 'plan.docx')
+        self.assertEqual(preview['blocks'][0], {'kind': 'heading', 'level': 1, 'text': 'Plan 2026'})
+        self.assertEqual(preview['blocks'][1], {'kind': 'paragraph', 'text': 'Resumen del avance'})
+        self.assertEqual(preview['blocks'][2], {'kind': 'table', 'rows': [['Meta', 'Logro'], ['60', '58']], 'truncated': False})
+        self.assertIn('Plan 2026', preview['text'])
+        sheet = lambda n: f'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>{n}</t></is></c></row></sheetData></worksheet>'
+        workbook = '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' \
+            '<sheet name="Seguimiento" sheetId="1" r:id="rId2"/><sheet name="Metas" sheetId="2" r:id="rId1"/></sheets></workbook>'
+        rels = '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' \
+            '<Relationship Id="rId1" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Target="/xl/worksheets/sheet2.xml"/></Relationships>'
+        xlsx = office_file('xlsx', workbook, {'xl/_rels/workbook.xml.rels': rels,
+                                              'xl/worksheets/sheet1.xml': sheet('uno'), 'xl/worksheets/sheet2.xml': sheet('dos')})
+        preview = document_preview_bytes(xlsx, 'libro.xlsx')
+        self.assertEqual([s['name'] for s in preview['sheets']], ['Seguimiento', 'Metas'])
+        self.assertEqual(preview['sheets'][0]['rows'], [['dos']])
+        self.assertEqual(preview['sheets'][1]['rows'], [['uno']])
+
     def test_rejected_uploads_do_not_create_files_or_reports(self):
         task = self.task()
         macro = office_file('docx', '<document/>', {'word/vbaProject.bin': b'fake macro'})

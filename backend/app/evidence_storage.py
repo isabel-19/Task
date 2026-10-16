@@ -123,6 +123,75 @@ def document_preview(path, name):
     return document_preview_bytes(path.read_bytes(), name)
 
 
+MAX_SHEETS = 5
+W_NS = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+R_NS = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'
+S_NS = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+
+
+def worksheet_order(archive):
+    """Real sheet names in workbook order; falls back to file order when the workbook has no relations."""
+    files = archive.namelist()
+    if 'xl/workbook.xml' in files and 'xl/_rels/workbook.xml.rels' in files:
+        targets = {}
+        for rel in safe_xml(archive, 'xl/_rels/workbook.xml.rels'):
+            target = rel.get('Target', '').lstrip('/')
+            targets[rel.get('Id')] = target if target.startswith('xl/') else 'xl/' + target
+        ordered = []
+        for sheet in safe_xml(archive, 'xl/workbook.xml').findall('s:sheets/s:sheet', S_NS):
+            path = targets.get(sheet.get(R_NS + 'id'))
+            if path in files and re.fullmatch(r'xl/worksheets/[\w.-]+\.xml', path):
+                ordered.append((sheet.get('name') or 'Hoja', path))
+        if ordered:
+            return ordered
+    names = sorted((n for n in files if re.fullmatch(r'xl/worksheets/sheet\d+\.xml', n)),
+                   key=lambda n: int(re.search(r'(\d+)', n)[1]))
+    return [('Hoja ' + str(index + 1), n) for index, n in enumerate(names)]
+
+
+def docx_preview(archive, limit):
+    """Structure only: headings, paragraphs and tables as plain text, never styles, links or fields."""
+    root = safe_xml(archive, 'word/document.xml')
+    body = root.find(W_NS + 'body')
+    blocks, texts, budget = [], [], {'paragraphs': 0}
+
+    def para_text(p):
+        return ''.join(node.text or '' for node in p.iter(W_NS + 't'))
+
+    def heading_level(p):
+        style = p.find(f'{W_NS}pPr/{W_NS}pStyle')
+        value = (style.get(W_NS + 'val') or '') if style is not None else ''
+        match = re.fullmatch(r'(?:heading|encabezado|título|titulo)\s*(\d)', value, re.IGNORECASE)
+        if match:
+            return min(int(match[1]), 4)
+        return 1 if value.lower() in {'title', 'título', 'titulo'} else 0
+
+    for child in (body if body is not None else []):
+        if child.tag == W_NS + 'p':
+            text = para_text(child)
+            texts.append(text)
+            if text.strip() and budget['paragraphs'] < 3000:
+                budget['paragraphs'] += 1
+                level = heading_level(child)
+                blocks.append({'kind': 'heading', 'level': level, 'text': text} if level else {'kind': 'paragraph', 'text': text})
+        elif child.tag == W_NS + 'tbl':
+            rows, table_cut = [], False
+            for tr in child.findall(W_NS + 'tr'):
+                cells = []
+                for tc in tr.findall(W_NS + 'tc'):
+                    cell_text = ' '.join(filter(None, (para_text(p).strip() for p in tc.iter(W_NS + 'p'))))
+                    texts.extend(para_text(p) for p in tc.iter(W_NS + 'p'))
+                    cells.append(cell_text[:2000])
+                table_cut |= len(cells) > 20
+                rows.append(cells[:20])
+            if rows:
+                table_cut |= len(rows) > 100
+                blocks.append({'kind': 'table', 'rows': rows[:100], 'truncated': table_cut})
+    text = '\n'.join(texts)
+    truncated = len(text) > limit or len(blocks) >= 3000
+    return {'kind': 'text', 'text': text[:limit], 'blocks': blocks, 'truncated': truncated}
+
+
 def document_preview_bytes(data, name):
     """Extract values as data, never HTML, scripts, Office macros or external links."""
     suffix = Path(name).suffix.lower()
@@ -148,19 +217,16 @@ def document_preview_bytes(data, name):
             return {'kind': 'table', 'sheets': [{'name': name, 'rows': rows}], 'truncated': truncated}
         with office_archive(data, suffix) as archive:
             if suffix == '.docx':
-                root = safe_xml(archive, 'word/document.xml')
-                ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
-                text = '\n'.join(''.join(p.itertext()) for p in root.findall('.//w:p', ns))
-                return {'kind': 'text', 'text': text[:limit], 'truncated': len(text) > limit}
+                return docx_preview(archive, limit)
             ns = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
             strings = []
             if 'xl/sharedStrings.xml' in archive.namelist():
                 strings = [''.join(el.itertext()) for el in safe_xml(archive, 'xl/sharedStrings.xml').findall('s:si', ns)]
-            names = sorted(n for n in archive.namelist() if re.fullmatch(r'xl/worksheets/sheet\d+\.xml', n))
-            sheets, truncated = [], len(names) > 3
-            for name in names[:3]:
+            ordered = worksheet_order(archive)
+            sheets, truncated = [], len(ordered) > MAX_SHEETS
+            for sheet_name, path in ordered[:MAX_SHEETS]:
                 rows = []
-                for row in safe_xml(archive, name).findall('.//s:sheetData/s:row', ns):
+                for row in safe_xml(archive, path).findall('.//s:sheetData/s:row', ns):
                     if len(rows) >= 100:
                         truncated = True
                         break
@@ -183,7 +249,7 @@ def document_preview_bytes(data, name):
                         truncated |= len(value) > 2000
                         cells[col - 1] = value[:2000]
                     rows.append([cells.get(i, '') for i in range(max(cells, default=-1) + 1)])
-                sheets.append({'name': 'Hoja ' + re.search(r'sheet(\d+)', name)[1], 'rows': rows})
+                sheets.append({'name': sheet_name[:100], 'rows': rows})
             return {'kind': 'table', 'sheets': sheets, 'truncated': truncated}
     except (OSError, zipfile.BadZipFile, KeyError, ET.ParseError, RuntimeError, ValueError, IndexError, AttributeError, csv.Error):
         raise HTTPException(422, 'No se pudo generar la vista previa. Puedes descargar el archivo original.')

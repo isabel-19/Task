@@ -330,6 +330,14 @@ button:focus-visible, a:focus-visible, [role='button']:focus-visible { outline: 
 .evidence-table-scroll table { border-collapse: collapse; font-size: 13px; min-width: 100%; }
 .evidence-table-scroll td { border: 1px solid var(--line); padding: 9px 12px; white-space: pre-wrap; min-width: 110px; max-width: 300px; overflow-wrap: anywhere; }
 .evidence-sheet-preview h3 { font-size: 15px; padding: 10px 0; }
+.evidence-doc-blocks { white-space: normal; background: #fff; }
+.evidence-doc-blocks p { margin: 0 0 10px; color: var(--ink); }
+.evidence-doc-blocks .evidence-table-scroll { margin: 12px 0; }
+.evidence-doc-h1 { font-size: 20px; font-weight: 600; margin: 8px 0 12px; color: var(--forest); }
+.evidence-doc-h2 { font-size: 17px; font-weight: 600; margin: 16px 0 8px; color: var(--forest); }
+.evidence-doc-h3, .evidence-doc-h4 { font-size: 15px; font-weight: 600; margin: 14px 0 6px; color: var(--ink); }
+.evidence-table-head td { background: #eef4ff; font-weight: 600; color: var(--forest); }
+.evidence-sheet-tabs { margin-bottom: 12px; border-bottom: 1px solid var(--line); }
 @media (max-width: 600px) {
   .evidence-preview-dialog { max-width: calc(100vw - 24px) !important; }
   .evidence-preview-heading h2 { font-size: 16px; }
