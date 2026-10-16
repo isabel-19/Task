@@ -268,6 +268,17 @@ class Attendee(Record, Base):
     __table_args__ = (UniqueConstraint('meeting_id', 'user_id'),)
 
 
+class Notification(Record, Base):
+    __tablename__ = 'notifications'
+    user_id = fk('users', False)
+    kind = Column(String(40), nullable=False)
+    entity = Column(String(40), nullable=False)
+    record_id = Column(String(36), nullable=False)
+    title = Column(String(250), nullable=False)
+    message = Column(Text, nullable=False)
+    read_at = Column(DateTime)
+
+
 class Agreement(Record, Base):
     __tablename__ = 'agreements'
     title = Column(String(250), nullable=False)

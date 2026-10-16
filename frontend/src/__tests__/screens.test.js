@@ -193,6 +193,32 @@ describe('Once pantallas con el contrato real de la API de demostración', () =>
       ),
     ).toBe(false);
   });
+  it('muestra el aviso de reunión en la campana, lo marca como leído y abre la reunión', async () => {
+    const { host, router } = await screen(modules.find((module) => module.path === '/tareas'));
+    await vi.waitFor(() => expect(host.querySelector('tbody tr')).not.toBeNull());
+    const original = api.getMockImplementation();
+    const meeting = fixture.meetings.items[0];
+    let read = false;
+    api.mockImplementation((path, options) => {
+      if (path === '/alerts') return Promise.resolve([]);
+      if (path === '/notifications') return Promise.resolve(read ? [] : [{ id: 'aviso-1', kind: 'meeting_invited', entity: 'meetings', record_id: meeting.id, title: 'Te invitaron a una reunión: ' + meeting.title, message: '20/10/2026 10:00 · Sala ficticia' }]);
+      if (path === '/notifications/aviso-1/read') {
+        read = true;
+        return Promise.resolve({ ok: true });
+      }
+      return original(path, options);
+    });
+    window.dispatchEvent(new Event('focus'));
+    await vi.waitFor(() => expect(host.querySelector('.topbar .q-badge')?.textContent).toBe('1'));
+    host.querySelector('button[aria-label="Ver alertas"]').click();
+    await vi.waitFor(() => expect(document.querySelector('.alerts-drawer')?.textContent).toContain('Sala ficticia'));
+    document.querySelector('.alerts-drawer .q-item').click();
+    await vi.waitFor(() => expect(api.mock.calls.some(([path, opts]) => path === '/notifications/aviso-1/read' && opts?.method === 'POST')).toBe(true));
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/reuniones'));
+    expect(router.currentRoute.value.query).toEqual({ resource: 'meetings', id: meeting.id });
+    api.mockImplementation(original);
+  });
+
   it('notifica evidencia pendiente, abre la tarea desde la campana y retira el aviso al revisarse', async () => {
     const { host, router } = await screen(modules.find((module) => module.path === '/tareas'));
     await vi.waitFor(() => expect(host.querySelector('tbody tr')).not.toBeNull());

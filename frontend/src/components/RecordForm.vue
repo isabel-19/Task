@@ -71,6 +71,7 @@
       officeSearch.recipient = '';
       officeSearch.sender = '';
       if (props.resource === 'tasks') form.member_ids = [];
+      if (props.resource === 'meetings') form.attendee_ids = [];
       for (const field of props.schema?.fields || []) {
         form[field.key] =
           props.record?.[field.key] ??
@@ -158,6 +159,7 @@
       }
       if (isDocument.value && !props.record) body.automatic_number = automaticNumber.value;
       if (props.resource === 'tasks' && !props.record) body.member_ids = form.member_ids;
+      if (props.resource === 'meetings' && !props.record) body.attendee_ids = form.attendee_ids;
       if (props.record) body.revision = props.record.revision;
       const result = await api('/' + props.resource + (props.record ? '/' + props.record.id : ''), {
         method: props.record ? 'PATCH' : 'POST',
@@ -325,6 +327,22 @@
             <p class="info-note">
               El responsable y los participantes verán esta tarea en su espacio. Cada persona
               reporta su avance con evidencia y el jefe lo revisa.
+            </p>
+          </div>
+          <div v-if="resource === 'meetings' && !record" class="q-gutter-y-md q-mt-md">
+            <q-select
+              v-model="form.attendee_ids"
+              outlined
+              multiple
+              use-chips
+              emit-value
+              map-options
+              label="Asistentes"
+              :options="lookups['users'] || []"
+            />
+            <p class="info-note">
+              Cada asistente recibirá un aviso en la campana de alertas y verá la reunión en su espacio.
+              Si cambias la fecha, el lugar o la reunión se cancela, también se avisa.
             </p>
           </div>
           <q-banner v-if="error" class="error-banner" role="alert" style="white-space: pre-wrap">{{

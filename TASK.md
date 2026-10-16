@@ -75,7 +75,7 @@
 - [x] Crear pantallas base y rutas funcionales para cada módulo, incluyendo vacíos/carga/error.
 
 ### Fase 4 — Backend / API (FastAPI)
-- [ ] Configurar PostgreSQL, ORM, validaciones, migraciones, manejo de errores y variables de entorno.
+- [x] Configurar PostgreSQL, ORM, validaciones, migraciones, manejo de errores y variables de entorno.
 - [x] Implementar autenticación y autorización por acción en API.
 - [x] Crear API para proyectos, cronograma, tareas, asignaciones, avances y cierre.
 - [x] Crear API para Registro Digital y vínculos entre documentos, tareas y proyectos.
@@ -110,9 +110,9 @@
 - [x] Ejecutar pruebas automatizadas de API y componentes principales.
 
 ### Fase 7 — Publicación de prueba y entrega
-- [ ] Publicar frontend y backend juntos en Render Free con Supabase Free, por elección del usuario del 15 de octubre.
-- [ ] Configurar Supabase, seguridad, variables de entorno y permisos mínimos.
-- [ ] Verificar funcionamiento de extremo a extremo con datos ficticios.
+- [x] Publicar frontend y backend juntos en Render Free con Supabase Free, por elección del usuario del 15 de octubre.
+- [x] Configurar Supabase, seguridad, variables de entorno y permisos mínimos.
+- [x] Verificar funcionamiento de extremo a extremo con datos ficticios.
 - [x] Documentar backups, restauración y límites de hosting gratuito.
 - [x] Crear manual breve de uso y administración y checklist previo a producción institucional.
 
@@ -120,8 +120,15 @@
 Una casilla solo se marca `[x]` cuando su código/documentación existe y se verificó. Nunca desplegar información institucional real en la infraestructura gratuita sin autorización y revisión de seguridad.
 
 ## Bitácora de avance
+
+El estado vigente y el punto exacto para retomar están en [CONTINUIDAD.md](CONTINUIDAD.md). Actualizar ese informe después de cada modificación, según la instrucción del propietario guardada en [AGENTS.md](AGENTS.md).
+
 | Fecha | Tarea | Resultado / prueba | Próximo paso o bloqueo |
 |---|---|---|---|
+| 2026-10-16 | Respaldo y migración 011 para avisos de reuniones | Respaldo cifrado consistente: 48 tablas, 257 filas y 3 evidencias; restauración local verificada y servidor temporal detenido. Alembic 011 aplicado en Supabase con permisos y datos previos comprobados. BOOTSTRAP_* retirados con Save only. 109 pruebas backend, 76 frontend y build correctos | Pendiente confirmar publicación y flujo remoto de avisos con dos cuentas. Excluir database/supabase-hardening.sql del commit/push por indicación del propietario; conservar el cambio local |
+| 2026-10-15 | Informe de continuidad solicitado para cerrar sesión | CONTINUIDAD.md reúne historial, decisiones, estado de Render/Supabase, pruebas, diff local y pendientes. AGENTS.md ordena leerlo al retomar y actualizarlo después de cada modificación; enlaces en README y TASK | Documentación guardada localmente, sin commit/push ni cambios remotos. Retomar por la retirada de BOOTSTRAP_* después del primer ingreso ya confirmado |
+| 2026-10-15 | Validación solicitada de web y base reales | PostgreSQL 010: 47 tablas del modelo, 128 FK sin huérfanos, TLS y rol restringido correctos. 50 consultas API, 12 pantallas y flujo real asignación → archivo → aviso → revisión → cierre correctos. Storage privado y recuperación desde nueva sesión correctos. 104 pruebas backend y 75 frontend pasaron; informe en docs/verificacion-render-2026-10-15.md | Google sin vincular en la web, Microsoft sin habilitar y BOOTSTRAP_* aún presentes en Render. No se editó configuración remota ni se probó reinicio/restauración. Cuenta ficticia creada para la prueba quedó desactivada y tarea cerrada |
+| 2026-10-15 | Reanudación de Render y comprobación de publicación | https://roadmap-ogc.onrender.com responde por HTTPS con PostgreSQL, production y demo false. Acceso anónimo a tareas rechazado; ingreso de jefatura correcto; tarea ficticia cerrada y archivo privado anterior recuperados con SHA-256 correcto. No se provocó un reinicio ni se crearon datos nuevos | Confirmar ingreso del propietario, revisar/retirar variables BOOTSTRAP_* en Render y verificar Google con el dominio final. No hay navegador conectado para operar el panel; documentación de estado actualizada |
 | 2026-10-15 | Render gratuito elegido por el usuario | Blueprint Free con interfaz/API en un contenedor; archivos privados en Supabase Storage sin disco efímero, control de sesión/tarea antes de leer, integridad y compensación si falla la transacción. Migración al arranque y alta inicial sin shell. Suite de 100 pruebas correcta y dos comprobaciones adicionales de arranque correctas. Código subido al repositorio existente y formulario Render preparado con Free ($0/mes) | Pendiente iniciar sesión en Supabase, crear/verificar PostgreSQL/Storage y terminar las variables secretas antes del despliegue. Todavía no hay URL publicada; no se crearon recursos de pago |
 | 2026-10-15 | Preparación de publicación solicitada | Contenedor con interfaz y API juntas, exclusión de secretos/datos locales, alternativa Render con disco privado y alta inicial de jefatura sin demo. Tres pruebas nuevas, build, prueba integrada de interfaz compilada/API y diff correctos. Ningún recurso de pago creado ni dato local transferido | Pendiente conectar alojamiento/repositorio y elegir servidor institucional, pago o prueba limitada. Docker y PostgreSQL reales sin verificar; todavía no hay URL pública |
 | 2026-10-15 | Drive personal y compartido con previsualización previa | Tres vistas del selector, soporte de unidades compartidas, previsualización privada sin crear evidencias y apertura del original cuando el propietario bloquea copias. Fallos del proveedor regresan a Cuentas vinculadas. 92 pruebas backend y 75 frontend, build y conexión OAuth real correctos tras autorizar la salida de red de la API; selector real y pestaña de compartidos abiertos sin errores | Google sigue en modo Prueba y Publicar app está deshabilitado hasta completar la marca. Falta dirección pública/políticas para publicación general y elegir un documento real para comprobar su contenido; no se copiaron documentos reales |
@@ -151,8 +158,8 @@ Una casilla solo se marca `[x]` cuando su código/documentación existe y se ver
 
 ### Bloqueos y siguiente paso
 
-- PostgreSQL/Supabase: instalar `requirements-postgres.txt` en un entorno con acceso a paquetes y conectar una base de prueba; ejecutar Alembic y los controles relacionales antes de cerrar las casillas correspondientes.
+- PostgreSQL/Supabase: conexión real y migración 010 verificadas; modelo, relaciones, TLS y permisos mínimos correctos. Pendiente probar backup/restauración en una base separada; ver docs/verificacion-render-2026-10-15.md.
 - REGISTRO DIGITAL: revisar dibujos/objetos y sus enlaces en una copia XLSX materializable o navegador conectado. Los Excel encontrados por búsqueda no se declaran enlazados sin comprobarlo. La lectura del libro binario exportado falló por restricción de red.
 - Importación institucional: aprobar identidades, años ambiguos, equivalencia de estados y procedencia de las hojas originales. El mapeo documentado no implica que se hayan importado datos reales.
-- Publicación: por elección del usuario, Render Free para interfaz/API y Supabase Free para datos/evidencias. Código actualizado subido a isabel-19/Task con acceso Git existente. Render tiene sesión iniciada y formulario Free preparado; falta autenticar Supabase y verificar PostgreSQL/Storage reales. Las importaciones permanecen deshabilitadas.
-- Navegador: conectar Browser para comprobar escritorio/móvil, selección de relaciones, descargas y los flujos completos en la interfaz. Ver docs/verificacion.md.
+- Publicación: activa en https://roadmap-ogc.onrender.com con Render Free y Supabase. Propietario ingresó; flujo real con archivo y base verificados. BOOTSTRAP_* siguen presentes en el panel; falta retirarlos. Google sin vincular en la web y Microsoft sin habilitar. Las importaciones permanecen deshabilitadas.
+- Navegador: 12 pantallas publicadas y previsualización de evidencia comprobadas; tareas inspeccionadas en escritorio/móvil. La vinculación real de Google en el dominio público sigue pendiente. Ver docs/verificacion-render-2026-10-15.md.

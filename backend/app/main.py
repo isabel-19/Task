@@ -250,6 +250,57 @@ def alerts(request: Request, user=Depends(current_user), db=Depends(get_db)):
     return review_alerts + sorted(result, key=lambda a: a['due_date'])
 
 
+MEETING_NOTICES = {
+    'meeting_invited': 'Te invitaron a una reunión',
+    'meeting_updated': 'Reunión actualizada',
+    'meeting_cancelled': 'Reunión cancelada',
+}
+
+
+def notify_attendees(db, actor, user_ids, kind, meeting):
+    # Each notice is private to its recipient; the meeting record itself keeps normal scope rules.
+    when = meeting.date.strftime('%d/%m/%Y %H:%M')
+    for user_id in dict.fromkeys(user_ids):
+        db.add(m.Notification(user_id=user_id, kind=kind, entity='meetings', record_id=meeting.id,
+                              title=f'{MEETING_NOTICES[kind]}: {meeting.title}',
+                              message=f'{when} · {meeting.location}', modified_by=actor.id))
+
+
+def add_attendees(db, actor, meeting, user_ids):
+    current = set(db.scalars(select(m.Attendee.user_id).where(m.Attendee.meeting_id == meeting.id)))
+    added = []
+    for user_id in dict.fromkeys(user_ids):
+        if user_id in current:
+            continue
+        target = db.get(m.User, user_id)
+        if not target or not target.active:
+            raise HTTPException(422, 'Selecciona personas activas como asistentes.')
+        attendee = m.Attendee(meeting_id=meeting.id, user_id=user_id, attended=False, modified_by=actor.id)
+        db.add(attendee)
+        audit(db, actor, 'attendees', attendee, 'create')
+        added.append(user_id)
+    notify_attendees(db, actor, added, 'meeting_invited', meeting)
+
+
+@app.get('/api/notifications')
+def my_notifications(user=Depends(current_user), db=Depends(get_db)):
+    rows = db.scalars(select(m.Notification).where(m.Notification.user_id == user.id, m.Notification.read_at.is_(None))
+                      .order_by(m.Notification.created_at.desc()).limit(50))
+    return [serialize(row) for row in rows]
+
+
+@app.post('/api/notifications/{identifier}/read')
+def read_notification(identifier: str, user=Depends(current_user), db=Depends(get_db)):
+    notice = db.get(m.Notification, identifier)
+    if not notice or notice.user_id != user.id:
+        raise HTTPException(404, 'Aviso no encontrado.')
+    if notice.read_at is None:
+        notice.read_at = m.now()
+        touch(db, user, 'notifications', notice, 'read', serialize(notice))
+        db.commit()
+    return {'ok': True}
+
+
 @app.get('/api/reports/{name}.csv')
 def report(name: str, request: Request, user=Depends(current_user), db=Depends(get_db)):
     require(db, user, 'reports.read')
@@ -590,6 +641,9 @@ def create_record(name: str, body: dict, user=Depends(current_user), db=Depends(
     member_ids = raw.pop('member_ids', []) if name == 'tasks' else []
     if not isinstance(member_ids, list) or len(member_ids) > 1000 or any(not isinstance(v, str) for v in member_ids):
         raise HTTPException(422, 'Selecciona una lista de integrantes válida.')
+    attendee_ids = raw.pop('attendee_ids', []) if name == 'meetings' else []
+    if not isinstance(attendee_ids, list) or len(attendee_ids) > 1000 or any(not isinstance(v, str) for v in attendee_ids):
+        raise HTTPException(422, 'Selecciona una lista de asistentes válida.')
     if name == 'tasks':raw = task_input(db,user,raw)
     data = validate_data(name, raw)
     if name == 'tasks':
@@ -619,6 +673,15 @@ def create_record(name: str, body: dict, user=Depends(current_user), db=Depends(
             assignment = m.TaskAssignment(task_id=record.id, user_id=identifier, assigned_by=user.id, modified_by=user.id)
             db.add(assignment)
             audit(db, user, 'task-assignments', assignment, 'create')
+    if name == 'meetings':
+        db.flush()
+        add_attendees(db, user, record, attendee_ids)
+    if name == 'attendees':
+        meeting = get_record(db, m.Meeting, record.meeting_id, True)
+        target = db.get(m.User, record.user_id)
+        if not target or not target.active:
+            raise HTTPException(422, 'Selecciona personas activas como asistentes.')
+        notify_attendees(db, user, [record.user_id], 'meeting_invited', meeting)
     if name == 'task-assignments':
         task = get_record(db, m.Task, record.task_id, True)
         before = serialize(task)
@@ -675,6 +738,12 @@ def edit_record(name: str, identifier: str, body: dict, user=Depends(current_use
     audit(db, user, name, record, 'update', before)
     if name == 'documents':
         save_link(db, user, record, document_link)
+    if name == 'meetings':
+        after = serialize(record)
+        if any(after.get(key) != before.get(key) for key in ('date', 'location', 'title', 'status')):
+            attendees = list(db.scalars(select(m.Attendee.user_id).where(m.Attendee.meeting_id == record.id)))
+            kind = 'meeting_cancelled' if record.status == 'cancelada' else 'meeting_updated'
+            notify_attendees(db, user, attendees, kind, record)
     db.commit()
     return enrich(db, name, record, user)
 

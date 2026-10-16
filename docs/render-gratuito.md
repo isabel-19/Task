@@ -2,7 +2,11 @@
 
 Opción elegida por el usuario el 15 de octubre de 2026. `render.yaml` publica la interfaz y la API juntas en una instancia Free. Supabase Free conserva PostgreSQL y las evidencias en un bucket privado. Los archivos no dependen del disco temporal de Render. No se contrató infraestructura de pago.
 
-Estado: código actualizado publicado en el repositorio existente `isabel-19/Task`; Render tiene sesión iniciada y formulario preparado con Free ($0/mes), Docker, rama principal y salud `/api/health`. No se envió el despliegue sin una base configurada. Falta iniciar sesión en Supabase para crear/verificar PostgreSQL y Storage privados y terminar las variables secretas. Se utilizó el acceso Git existente del equipo; no hace falta otra cuenta de GitHub para subir este código.
+Estado al retomar el 15 de octubre de 2026: aplicación publicada en https://roadmap-ogc.onrender.com con Render Free, Docker y salud `/api/health`. Supabase está creado; el registro privado de preparación indica PostgreSQL migrado hasta 010, rol restringido y bucket privado verificados. Se volvió a comprobar por HTTPS la salud de producción (PostgreSQL, demo desactivada), el rechazo de tareas sin sesión, el ingreso de jefatura y la descarga íntegra del archivo de una tarea ficticia cerrada. Esta comprobación no provocó un reinicio de Render. El repositorio es `isabel-19/Task`.
+
+Revalidación posterior: el propietario confirmó el ingreso. Se revisaron PostgreSQL real (47 tablas del modelo, 128 relaciones sin huérfanos, TLS y rol restringido), 50 consultas API, 12 pantallas y el flujo real de asignación, archivo, aviso, revisión y cierre. Pasaron 104 pruebas locales de backend y 75 de interfaz. Véase el [informe y sus límites](verificacion-render-2026-10-15.md).
+
+Siguiente paso: retirar las variables temporales `BOOTSTRAP_*`, cuya presencia se confirmó en el panel de Render sin modificarlo. La cuenta ya creada se conserva al retirar esas variables. Google está configurado, pero la cuenta de jefatura todavía aparece sin vincular en la web; falta probar Drive con autorización personal. Microsoft no está habilitado. El registro de integrantes y la prueba de restauración de backups siguen pendientes.
 
 ## Recursos y límites
 

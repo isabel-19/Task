@@ -3284,6 +3284,7 @@
       }
     ]
   },
+  "notifications": [],
   "alerts": [
     {
       "entity": "tasks",

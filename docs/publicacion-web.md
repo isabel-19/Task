@@ -1,6 +1,6 @@
 # Publicación de ROADMAP OGC
 
-Estado al 15 de octubre de 2026: empaquetado y configuración preparados; **todavía no existe un despliegue público verificado**. Falta conectar alojamiento y repositorio, elegir el servicio y verificar PostgreSQL. No se han creado recursos de pago ni trasladado datos locales.
+Estado al retomar el 15 de octubre de 2026: **aplicación publicada en https://roadmap-ogc.onrender.com** con Render Free y Supabase. Se comprobaron salud de producción con PostgreSQL, ingreso de jefatura y recuperación íntegra de un archivo privado de prueba. La configuración vigente y los pendientes están en [Render gratuito](render-gratuito.md); las instrucciones de pago de este documento son una alternativa histórica.
 
 El usuario eligió después **Render gratuito**. La configuración activa de la raíz usa Render Free y Supabase Free para conservar datos y archivos privados: seguir [Render gratuito](render-gratuito.md). Las instrucciones de disco y consola de este documento corresponden únicamente a la alternativa de pago, que no se aplicará.
 

@@ -1,5 +1,7 @@
 # ROADMAP OGC · UNAJMA
 
+Para retomar otra sesión, leer primero el [informe de continuidad](CONTINUIDAD.md): resume lo realizado, el estado publicado, las pruebas y el siguiente paso. Por petición del propietario, se actualiza después de cada modificación conforme a [AGENTS.md](AGENTS.md).
+
 Aplicación interna de planificación, registro documental y trazabilidad con Vue 3 + Quasar, FastAPI y modelo relacional portable a PostgreSQL/Supabase. El repositorio incluye código y una demostración con datos ficticios. Las decisiones de flujo se validan en la API.
 
 La base local, los participantes importados, los Excel originales, las contraseñas y la configuración privada no se versionan. Al instalar en otro equipo se genera una nueva demostración; los participantes y catálogos se cargan desde una copia privada del Excel siguiendo las guías de importación.
@@ -63,4 +65,4 @@ También se pueden adjuntar archivos del equipo, hasta 20 MB por envío: PDF, im
 
 Google y Microsoft se vinculan por usuario desde Cuentas vinculadas. Jefatura habilita una sola vez las aplicaciones OAuth desde el panel de configuración general; después, cualquier usuario con permiso para trabajar en tareas puede autorizar su propia cuenta. La selección usa Google Picker o los archivos de OneDrive; la entrega conserva una copia privada para revisión. Requiere Alembic hasta 010 y registrar las aplicaciones externas antes de conectar cuentas reales. Consulta la [activación de Google y Microsoft](docs/cuentas-google-microsoft.md).
 
-La publicación elegida usa Render Free para la interfaz/API y Supabase Free para PostgreSQL y evidencias privadas, sin guardar archivos en el disco temporal de Render. Se incluyen contenedor, migraciones al arranque y alta inicial de jefatura sin cuentas demo. Consulta [publicación web](docs/publicacion-web.md). El despliegue público y PostgreSQL continúan pendientes de conexión al alojamiento y validación real.
+La aplicación está publicada en https://roadmap-ogc.onrender.com con Render Free para la interfaz/API y Supabase Free para PostgreSQL y evidencias privadas. Se verificaron salud de producción, ingreso de jefatura y recuperación de un archivo privado de prueba. Consulta el [estado de Render y los siguientes pasos](docs/render-gratuito.md), incluida la comprobación pendiente de las variables temporales `BOOTSTRAP_*` en el panel.

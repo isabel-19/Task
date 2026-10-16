@@ -18,8 +18,30 @@
   );
   let alertTimer,
     alertSequence = 0,
-    knownReviewIds = null;
-  function openAlert(alert) {
+    knownReviewIds = null,
+    knownNoticeIds = null;
+  function noticeAlert(notice) {
+    return {
+      kind: 'notification',
+      notice_id: notice.id,
+      entity: notice.entity,
+      id: notice.record_id,
+      title: notice.title,
+      message: notice.message,
+      label: 'Reunión',
+      overdue: false,
+    };
+  }
+  async function openAlert(alert) {
+    if (alert.kind === 'notification') {
+      // Opening a notice marks it as read so it leaves the bell.
+      try {
+        await api('/notifications/' + alert.notice_id + '/read', { method: 'POST' });
+        alerts.value = alerts.value.filter((item) => item !== alert);
+      } catch (e) {
+        q.notify({ type: 'negative', message: e.message });
+      }
+    }
     router.push({
       path: entityRoutes[alert.entity],
       query:
@@ -37,14 +59,29 @@
       .join(''),
   );
   async function loadAlerts() {
-    if (!session.user || !can('reports.read')) return;
+    if (!session.user) return;
     const userId = session.user.id,
       turn = ++alertSequence;
     loadingAlerts.value = true;
     try {
-      const result = await api('/alerts');
+      const [result, notices] = await Promise.all([
+        can('reports.read') ? api('/alerts') : [],
+        api('/notifications'),
+      ]);
       if (turn !== alertSequence || session.user?.id !== userId) return;
-      alerts.value = result;
+      alerts.value = [...notices.map(noticeAlert), ...result];
+      const freshNotices = notices.filter((notice) => !knownNoticeIds?.has(notice.id));
+      if (freshNotices.length && knownNoticeIds !== null)
+        q.notify({
+          type: 'info',
+          message:
+            freshNotices.length === 1
+              ? freshNotices[0].title
+              : `Tienes ${freshNotices.length} avisos nuevos de reuniones.`,
+          timeout: 6000,
+          actions: [{ label: 'Ver', color: 'white', handler: () => openAlert(noticeAlert(freshNotices[0])) }],
+        });
+      knownNoticeIds = new Set(notices.map((notice) => notice.id));
       const reviews = result.filter((alert) => alert.kind === 'task_review');
       const fresh = reviews.filter((alert) => !knownReviewIds?.has(alert.id));
       if (fresh.length)
@@ -71,6 +108,7 @@
     (id) => {
       alerts.value = [];
       knownReviewIds = null;
+      knownNoticeIds = null;
       alertSequence++;
       if (id) loadAlerts();
     },
@@ -258,9 +296,11 @@
                 :name="
                   alert.kind === 'task_review'
                     ? 'rate_review'
-                    : alert.overdue
-                      ? 'schedule'
-                      : 'event'
+                    : alert.kind === 'notification'
+                      ? 'groups'
+                      : alert.overdue
+                        ? 'schedule'
+                        : 'event'
                 "
                 :color="alert.overdue ? 'negative' : 'primary'" /></q-item-section
             ><q-item-section
@@ -268,11 +308,19 @@
               ><q-item-label caption>{{
                 alert.kind === 'task_review'
                   ? `${alert.author} · Avance ${alert.progress}% · ${alert.label}`
-                  : `${alert.label} · ${dateLabel(alert.due_date)}`
+                  : alert.kind === 'notification'
+                    ? alert.message
+                    : `${alert.label} · ${dateLabel(alert.due_date)}`
               }}</q-item-label></q-item-section
             ><q-item-section side
               ><span :class="alert.overdue ? 'text-negative' : 'text-primary'">{{
-                alert.kind === 'task_review' ? 'Por revisar' : alert.overdue ? 'Vencido' : 'Próximo'
+                alert.kind === 'task_review'
+                  ? 'Por revisar'
+                  : alert.kind === 'notification'
+                    ? 'Nueva'
+                    : alert.overdue
+                      ? 'Vencido'
+                      : 'Próximo'
               }}</span></q-item-section
             ></q-item
           ></q-list

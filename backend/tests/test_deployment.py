@@ -130,6 +130,6 @@ class FreeHostStartupTest(unittest.TestCase):
             self.assertFalse(runtime.exists())
             engine = create_engine('sqlite:///' + target.as_posix())
             with engine.connect() as db:
-                self.assertEqual(db.exec_driver_sql('SELECT version_num FROM alembic_version').scalar(), '010')
+                self.assertEqual(db.exec_driver_sql('SELECT version_num FROM alembic_version').scalar(), '011')
                 self.assertEqual(db.exec_driver_sql('SELECT count(*) FROM users').scalar(), 0)
             engine.dispose()

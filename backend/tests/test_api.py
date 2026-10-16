@@ -556,7 +556,7 @@ class MigrationTest(unittest.TestCase):
                 if stmt.strip():db.exec_driver_sql(stmt)
             for stmt in path.with_name('005_document_axis_sqlite.sql').read_text(encoding='utf-8').split(';'):
                 if stmt.strip():db.exec_driver_sql(stmt)
-            for migration in ['006_document_workflow_sqlite.sql', '007_chief_administration_sqlite.sql', '008_evidence_files_sqlite.sql', '009_cloud_accounts_sqlite.sql', '010_cloud_configuration_sqlite.sql']:
+            for migration in ['006_document_workflow_sqlite.sql', '007_chief_administration_sqlite.sql', '008_evidence_files_sqlite.sql', '009_cloud_accounts_sqlite.sql', '010_cloud_configuration_sqlite.sql', '011_meeting_notifications_sqlite.sql']:
                 for stmt in path.with_name(migration).read_text(encoding='utf-8').split(';'):
                     if stmt.strip(): db.exec_driver_sql(stmt)
             tables=db.exec_driver_sql("SELECT count(*) FROM sqlite_master WHERE type='table'").scalar()
